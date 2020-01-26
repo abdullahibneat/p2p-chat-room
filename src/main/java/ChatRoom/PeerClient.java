@@ -49,13 +49,25 @@ public class PeerClient {
         while(true) {
             String message = input.nextLine();
             if(message.startsWith(">")) continue;
-            if(message.equals("quit")) {
+            if(message.equals("/help")) {
+                System.out.println(
+                        "> Available commands:\n>\n" +
+                        "> /add ADDRESS:PORT\n" +
+                        "> Adds a member to your list of members\n>\n" +
+                        "> /quit\n" +
+                        "> Leave the chat");
+            } else if(message.equals("/quit")) {
                 online = false;
                 break;
+            } else if (message.startsWith("/add ")) {
+                String[] newContact = message.substring(5).split(":");
+                members.add(new PeerMember(newContact[0], Integer.parseInt(newContact[1])));
             } else {
                 sendMessage(message);
             }
         }
+        
+        server.join();
         
         System.out.println("Connection terminated.");
     }
