@@ -33,12 +33,23 @@ public class PeerClient {
     
     public PeerClient() throws Exception {
         Scanner input = new Scanner(System.in);
-        System.out.print("> Enter a port: ");
-        PORT = Integer.parseInt(input.nextLine());
+        
+        while(true) {
+            try {
+                System.out.print("> Enter a port: ");
+                PORT = Integer.parseInt(input.nextLine());
+                server = new PeerServerThread(this);
+                server.start();
+                break;
+            } catch(NumberFormatException e) {
+                System.out.println("> Port must be an integer number.");
+            } catch(Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        
         System.out.print("> Enter the address:port of an existing member: ");
         String existingMember = input.nextLine();
-        server = new PeerServerThread(this);
-        server.start();
         if(existingMember.isEmpty()){
             System.out.println("> You're the coordinator");
         } else {

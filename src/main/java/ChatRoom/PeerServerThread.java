@@ -21,20 +21,19 @@ public class PeerServerThread extends Thread {
     int port;
     ServerSocket server;
     
-    public PeerServerThread(PeerClient c) {
+    public PeerServerThread(PeerClient c) throws Exception {
         peer = c;
         port = peer.PORT;
+        try {
+            server = new ServerSocket(port);
+            server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
+        } catch (IOException ex) {
+            throw new Exception("> Port not available, try another port.");
+        }
     }
     
     @Override
     public void run() {
-        try {
-            server = new ServerSocket(port);
-            server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
-            System.out.println("> Server running");
-        } catch (IOException ex) {
-            System.out.println("> Port not available");
-        }
         while(peer.online) {
             try {
                 Socket conn = server.accept();
