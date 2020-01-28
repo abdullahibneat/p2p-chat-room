@@ -49,15 +49,23 @@ public class PeerClient {
             }
         }
         
-        System.out.print("> Enter the address:port of an existing member: ");
-        String existingMember = input.nextLine();
-        if(existingMember.isEmpty()){
-            System.out.println("> You're the coordinator");
-        } else {
-            members.add(new PeerMember(existingMember.split(":")[0], Integer.parseInt(existingMember.split(":")[1])));
-            sendMessage("Add me to your conctacts: " + addressPort);
+        while(true) {
+            System.out.print("> Enter the address:port of an existing member: ");
+            String existingMember = input.nextLine();
+            if(existingMember.isEmpty()){
+                System.out.println("> You're the coordinator");
+                break;
+            } else {
+                try {
+                    addMember(existingMember);
+                    sendMessage("Add me to your conctacts: " + addressPort);
+                    System.out.println("> Connected!");
+                    break;
+                } catch(Exception e) {
+                    System.out.println("> " + e.getMessage());
+                }
+            }
         }
-        System.out.println("> Connected!");
         
         while(true) {
             String message = input.nextLine();
@@ -73,8 +81,11 @@ public class PeerClient {
                 online = false;
                 break;
             } else if (message.startsWith("/add ")) {
-                String[] newContact = message.substring(5).split(":");
-                members.add(new PeerMember(newContact[0], Integer.parseInt(newContact[1])));
+                try {
+                    addMember(message.substring(5));
+                } catch(Exception e) {
+                    System.out.println("> " + e.getMessage());
+                }
             } else {
                 sendMessage(message);
             }
@@ -91,9 +102,29 @@ public class PeerClient {
                 Socket conn = new Socket(member.address, member.port);
                 PrintWriter out = new PrintWriter(conn.getOutputStream(), true);  // "true" because it allows flushing (i.e. sends message immediately, and clears the stream
                 out.println(message);                                               // so further messages can be sent later)
+                conn.close();
             } catch (IOException e) {
                 System.out.println("Member does not exist");
             }
+        }
+    }
+    
+    private void addMember(String addressPortString) throws Exception {
+        String[] addressPortArr = addressPortString.split(":");
+        if(addressPortArr.length != 2) throw new Exception("Invalid format");
+        
+        try {
+            String peerAddress = addressPortArr[0];
+            int peerPort = Integer.parseInt(addressPortArr[1]);
+            Socket testConn = new Socket(peerAddress, peerPort);
+            testConn.close();
+            PeerMember newMember = new PeerMember(peerAddress, peerPort);
+            members.add(newMember);
+            System.out.println("> Member added to your list.");
+        } catch(NumberFormatException e) {
+            throw new Exception("Port must be an integer number.");
+        } catch(IOException e) {
+            throw new Exception("Member does not exist");
         }
     }
 }

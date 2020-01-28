@@ -47,7 +47,9 @@ public class PeerServerThread extends Thread {
                 
                 Scanner s = new Scanner(conn.getInputStream());
                 
-                System.out.println("> " + s.nextLine());
+                while(s.hasNextLine()) {
+                    System.out.println("> " + s.nextLine());
+                }
                 
                 s.close();
                 
