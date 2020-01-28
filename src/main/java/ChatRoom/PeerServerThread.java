@@ -8,6 +8,7 @@ package ChatRoom;
 
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
@@ -27,6 +28,11 @@ public class PeerServerThread extends Thread {
         try {
             server = new ServerSocket(port);
             server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
+            
+            // Display IP address to share with others
+            Socket s = new Socket();
+            s.connect(new InetSocketAddress("google.com", 80));
+            System.out.println("> Share your ADDRESS:PORT with other members: " + s.getLocalAddress().toString().substring(1) + ":" + port);
         } catch (IOException ex) {
             throw new Exception("> Port not available, try another port.");
         }
