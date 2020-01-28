@@ -53,10 +53,11 @@ public class PeerClient {
         String existingMember = input.nextLine();
         if(existingMember.isEmpty()){
             System.out.println("> You're the coordinator");
+        } else {
+            members.add(new PeerMember(existingMember.split(":")[0], Integer.parseInt(existingMember.split(":")[1])));
+            sendMessage("Add me to your conctacts: " + addressPort);
         }
         System.out.println("> Connected!");
-        members.add(new PeerMember(existingMember.split(":")[0], Integer.parseInt(existingMember.split(":")[1])));
-        sendMessage("> Add me to your conctacts: " + addressPort);
         
         while(true) {
             String message = input.nextLine();
