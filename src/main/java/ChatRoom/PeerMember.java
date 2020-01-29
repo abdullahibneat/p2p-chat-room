@@ -16,6 +16,8 @@ public class PeerMember {
     String address;
     int port;
     
+    public PeerMember() {}
+    
     public PeerMember(String address, int port) {
         this.address = address;
         this.port = port;

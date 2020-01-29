@@ -32,8 +32,9 @@ public class PeerServerThread extends Thread {
             // Display IP address to share with others
             Socket s = new Socket();
             s.connect(new InetSocketAddress("google.com", 80));
-            peer.addressPort = s.getLocalAddress().toString().substring(1) + ":" + port;
-            System.out.println("> Share your ADDRESS:PORT with other members: " + peer.addressPort);
+            c.me.address = s.getLocalAddress().toString().substring(1);
+            c.me.port = port;
+            System.out.println("> Share your ADDRESS:PORT with other members: " + c.me.address + ":" + c.me.port);
         } catch (IOException ex) {
             throw new Exception("> Port not available, try another port.");
         }

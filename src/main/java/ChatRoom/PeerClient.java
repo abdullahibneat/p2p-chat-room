@@ -19,9 +19,9 @@ import java.util.Scanner;
  */
 public class PeerClient {
     int PORT;
-    String addressPort;
     PeerServerThread server;
     ArrayList<PeerMember> members = new ArrayList<>();
+    PeerMember me = new PeerMember();
     boolean online = true;
     
     public static void main(String[] args) {
@@ -58,7 +58,7 @@ public class PeerClient {
             } else {
                 try {
                     addMember(existingMember);
-                    sendMessage("Add me to your conctacts: " + addressPort);
+                    sendMessage("Add me to your conctacts: " + me.address + ":" + me.port);
                     System.out.println("> Connected!");
                     break;
                 } catch(Exception e) {
