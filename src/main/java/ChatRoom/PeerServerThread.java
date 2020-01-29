@@ -1,18 +1,15 @@
 package ChatRoom;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
+
 /**
+ * Server component for a peer.
+ * 
+ * Allows a peer to receive messages from others.
  *
  * @author Abdullah
  */
@@ -21,13 +18,19 @@ public class PeerServerThread extends Thread {
     PeerClient peer;
     ServerSocket server;
     
+    /**
+     * @param c Client this server should be bound to
+     * @throws java.lang.Exception
+     */
     public PeerServerThread(PeerClient c) throws Exception {
         peer = c;
         try {
+            // Create a server
             server = new ServerSocket(peer.me.port);
             server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
+                                    // Without it the client can never join the thread.
             
-            // Display IP address to share with others
+            // Get IP address to share with others peers
             Socket s = new Socket();
             s.connect(new InetSocketAddress("google.com", 80));
             c.me.address = s.getLocalAddress().toString().substring(1);
@@ -37,6 +40,11 @@ public class PeerServerThread extends Thread {
         }
     }
     
+    /**
+     * Server
+     * 
+     * Listen for incoming connections from other peers.
+     */
     @Override
     public void run() {
         while(peer.online) {
@@ -45,6 +53,7 @@ public class PeerServerThread extends Thread {
                 
                 Scanner s = new Scanner(conn.getInputStream());
                 
+                // Display the message on screen
                 while(s.hasNextLine()) {
                     System.out.println("> " + s.nextLine());
                 }
@@ -52,7 +61,7 @@ public class PeerServerThread extends Thread {
                 s.close();
                 
             } catch (IOException ex) {
-                //
+                // Connection went wrong.
             }
         }
     }

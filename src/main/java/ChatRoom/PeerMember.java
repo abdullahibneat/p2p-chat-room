@@ -1,13 +1,7 @@
 package ChatRoom;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 /**
+ * Class to store details of each peer.
  *
  * @author Abdullah
  */
@@ -16,15 +10,31 @@ public class PeerMember {
     String address;
     int port;
     
+    /**
+     * Initialise a peer using their username.
+     * 
+     * @param userName Username of peer
+     */
     public PeerMember(String userName) {
         this.userName = userName;
     }
     
+    /**
+     * Initialise a peer knowing their address and port.
+     * 
+     * @param address Host address
+     * @param port Port
+     */
     public PeerMember(String address, int port) {
         this.address = address;
         this.port = port;
     }
     
+    /**
+     * Display member details on screen
+     * 
+     * @return Details as string.
+     */
     @Override
     public String toString() {
         return      "> Details:"
