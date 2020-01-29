@@ -129,7 +129,7 @@ public class PeerClient {
             try {
                 Socket conn = new Socket(member.address, member.port);
                 PrintWriter out = new PrintWriter(conn.getOutputStream(), true);  // "true" because it allows flushing (i.e. sends message immediately, and clears the stream
-                out.println(message);                                               // so further messages can be sent later)
+                out.println(me.userName + ": " + message);                                               // so further messages can be sent later)
                 conn.close();
             } catch (IOException e) {
                 System.out.println("Member does not exist");
