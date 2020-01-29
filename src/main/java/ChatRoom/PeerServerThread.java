@@ -1,6 +1,8 @@
 package ChatRoom;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -51,17 +53,43 @@ public class PeerServerThread extends Thread {
             try {
                 Socket conn = server.accept();
                 
-                Scanner s = new Scanner(conn.getInputStream());
+                ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
                 
-                // Display the message on screen
-                while(s.hasNextLine()) {
-                    System.out.println("> " + s.nextLine());
+                Object obj = in.readObject();
+                String objClass = obj.getClass().getName();
+                
+                if(objClass.equals("java.lang.String")) {
+                    String message = (String)obj;
+                    
+                    if(message.startsWith("newMember")) {
+                        System.out.println("> Add member " + message);
+                    } else {
+                        System.out.println("> " + message);
+                    }
+                }
+                else if(objClass.equals("ChatRoom.PeerMember")) {
+                    PeerMember m = (PeerMember)obj;
+                    Scanner input = new Scanner(System.in);
+                    System.out.print("> Connection request from " + m.userName + ". Add to list (y/n)? ");
+                    String ans = input.nextLine().toLowerCase();
+                    if(ans.equals("y")) {
+                        peer.members.add(m);
+                        ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                        out.writeObject(peer.me);
+                        out.flush();
+                        System.out.println(peer.members.size());
+                        peer.globalAddMember(m);
+                        System.out.println("> Send message to peer saying I've added them");
+                    } else {
+                        System.out.println("> Ignoring...");
+                    }
                 }
                 
-                s.close();
-                
+                conn.close();
             } catch (IOException ex) {
                 // Connection went wrong.
+            } catch (ClassNotFoundException ex) {
+                System.out.println("!ClassNotFound");
             }
         }
     }

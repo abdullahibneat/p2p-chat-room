@@ -1,11 +1,13 @@
 package ChatRoom;
 
+import java.io.Serializable;
+
 /**
  * Class to store details of each peer.
  *
  * @author Abdullah
  */
-public class PeerMember {
+public class PeerMember implements Serializable {
     String userName;
     String address;
     int port;

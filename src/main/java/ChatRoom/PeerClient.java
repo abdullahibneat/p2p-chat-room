@@ -1,7 +1,8 @@
 package ChatRoom;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -17,7 +18,7 @@ import java.util.Scanner;
  *
  * @author Abdullah
  */
-public class PeerClient {
+public final class PeerClient {
     PeerServerThread server; // Server
     ArrayList<PeerMember> members = new ArrayList<>(); // List of members
     PeerMember me; // This peer's details
@@ -94,11 +95,11 @@ public class PeerClient {
             }
             
             try {
-                addMember(existingMember); // Add member
-                sendMessage("Add me to your conctacts: " + me.address + ":" + me.port); // Send your details
+                PeerMember m = sendRequest(existingMember);
+                members.add(m);
                 System.out.println("> Connected!");
                 break;
-            } catch(Exception e) {
+            } catch(IOException | ClassNotFoundException e) {
                 System.out.println("> " + e.getMessage());
             }
         }
@@ -128,7 +129,7 @@ public class PeerClient {
                 break;
             } else if (message.startsWith("/add ")) {
                 try {
-                    addMember(message.substring(5));
+                    System.out.println("> TODO: AddMember");
                 } catch(Exception e) {
                     System.out.println("> " + e.getMessage());
                 }
@@ -148,6 +149,11 @@ public class PeerClient {
                 } else {
                     System.out.println(me);
                 }
+            } else if(message.equals("/list")) {
+                System.out.println("> Your have " + members.size() + " member(s):");
+                for(PeerMember m: members) {
+                    System.out.println("> " + m.userName);
+                }
             } else {
                 // Not a command, send the message
                 sendMessage(message);
@@ -160,52 +166,46 @@ public class PeerClient {
         System.out.println("Connection terminated.");
     }
     
+    private PeerMember sendRequest(String addressPortString) throws IOException, ClassNotFoundException {
+        Socket conn = new Socket(addressPortString.split(":")[0], Integer.parseInt(addressPortString.split(":")[1]));
+        ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+        out.writeObject(me);
+        out.flush();
+        ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
+        PeerMember m = (PeerMember) in.readObject();
+        conn.close();
+        return m;
+    }
+    
+    public void globalAddMember(PeerMember newMember) throws IOException {
+        for(PeerMember m: members) {
+            if(!m.userName.equals(newMember.userName)) {
+                Socket conn = new Socket(m.address, m.port);
+                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                out.writeObject("newMember:"+m.userName+":"+m.address+":"+m.port);
+                out.flush();
+                conn.close();
+            }
+        }
+        System.out.println("> Everyone notified of new member.");
+    }
+    
     /**
      * Send a message to all peers in the list.
      * 
      * @param message Message to be sent
      */
-    private void sendMessage(String message) {
+    public void sendMessage(String message) {
         for(PeerMember member: members) {
             try {
                 Socket conn = new Socket(member.address, member.port);
-                PrintWriter out = new PrintWriter(conn.getOutputStream(), true);    // "true" because it allows flushing (i.e. sends message immediately, and clears the stream
-                out.println(me.userName + ": " + message);                          // so further messages can be sent later)
+                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                out.writeObject(me.userName + ": " + message);
+                out.flush();
                 conn.close();
             } catch (IOException e) {
                 System.out.println("Member does not exist");
             }
-        }
-    }
-    
-    /**
-     * Add a member if address:port combination is known.
-     * 
-     * @param addressPortString address:port combination
-     * @throws java.lang.Exception
-     */
-    private void addMember(String addressPortString) throws Exception {
-        
-        // Split the string at ":", and ensure both host and port are included
-        String[] addressPortArr = addressPortString.split(":");
-        if(addressPortArr.length != 2) throw new Exception("Invalid format");
-        
-        try {
-            String peerAddress = addressPortArr[0]; // Address
-            int peerPort = Integer.parseInt(addressPortArr[1]); // Port
-            
-            // Chech if peer exists
-            Socket testConn = new Socket(peerAddress, peerPort);
-            testConn.close();
-            
-            // Add peer to the list.
-            PeerMember newMember = new PeerMember(peerAddress, peerPort);
-            members.add(newMember);
-            System.out.println("> Member added to your list.");
-        } catch(NumberFormatException e) {
-            throw new Exception("Port must be an integer number.");
-        } catch(IOException e) {
-            throw new Exception("Member does not exist");
         }
     }
 }
