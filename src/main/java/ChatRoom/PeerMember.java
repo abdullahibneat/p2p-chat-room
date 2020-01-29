@@ -16,10 +16,20 @@ public class PeerMember {
     String address;
     int port;
     
-    public PeerMember() {}
+    public PeerMember(String userName) {
+        this.userName = userName;
+    }
     
     public PeerMember(String address, int port) {
         this.address = address;
         this.port = port;
+    }
+    
+    @Override
+    public String toString() {
+        return      "> Details:"
+                + "\n>    Username: " + userName
+                + "\n>    Address:  " + address
+                + "\n>    Port:     " + port;
     }
 }

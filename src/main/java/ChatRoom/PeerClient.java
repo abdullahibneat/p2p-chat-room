@@ -21,7 +21,7 @@ public class PeerClient {
     int PORT;
     PeerServerThread server;
     ArrayList<PeerMember> members = new ArrayList<>();
-    PeerMember me = new PeerMember();
+    PeerMember me;
     boolean online = true;
     
     public static void main(String[] args) {
@@ -34,6 +34,16 @@ public class PeerClient {
     
     public PeerClient() throws Exception {
         Scanner input = new Scanner(System.in);
+        
+        while(true) {
+            System.out.print("> Enter a username: ");
+            String userName = input.nextLine();
+            if(!(userName.isEmpty() || userName.contains(" "))) {
+                me = new PeerMember(userName);
+                break;
+            }
+            System.out.println("> Username cannot be empty or contain spaces.");
+        }
         
         while(true) {
             try {
@@ -76,7 +86,9 @@ public class PeerClient {
                         "> /add ADDRESS:PORT\n" +
                         "> Adds a member to your list of members\n>\n" +
                         "> /quit\n" +
-                        "> Leave the chat");
+                        "> Leave the chat\n>\n" +
+                        "> /details [username]\n" +
+                        "> Lists your details unless a username is specified");
             } else if(message.equals("/quit")) {
                 online = false;
                 break;
@@ -85,6 +97,22 @@ public class PeerClient {
                     addMember(message.substring(5));
                 } catch(Exception e) {
                     System.out.println("> " + e.getMessage());
+                }
+            } else if(message.startsWith("/details")) {
+                if(message.length() > 9) {  // i.e. /details username
+                    boolean found = false;
+                    String userName = message.substring(9);
+                    
+                    for(PeerMember m: members) {
+                        if(m.userName.equals(userName)) {
+                            found = true;
+                            System.out.println(m);
+                            break;
+                        }
+                    }
+                    if(!found) System.out.println("> Member does not exist");
+                } else {
+                    System.out.println(me);
                 }
             } else {
                 sendMessage(message);
