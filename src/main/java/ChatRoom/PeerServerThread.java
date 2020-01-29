@@ -19,21 +19,18 @@ import java.util.Scanner;
 public class PeerServerThread extends Thread {
     
     PeerClient peer;
-    int port;
     ServerSocket server;
     
     public PeerServerThread(PeerClient c) throws Exception {
         peer = c;
-        port = peer.PORT;
         try {
-            server = new ServerSocket(port);
+            server = new ServerSocket(peer.me.port);
             server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
             
             // Display IP address to share with others
             Socket s = new Socket();
             s.connect(new InetSocketAddress("google.com", 80));
             c.me.address = s.getLocalAddress().toString().substring(1);
-            c.me.port = port;
             System.out.println("> Share your ADDRESS:PORT with other members: " + c.me.address + ":" + c.me.port);
         } catch (IOException ex) {
             throw new Exception("> Port not available, try another port.");

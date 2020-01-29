@@ -18,7 +18,6 @@ import java.util.Scanner;
  * @author Abdullah
  */
 public class PeerClient {
-    int PORT;
     PeerServerThread server;
     ArrayList<PeerMember> members = new ArrayList<>();
     PeerMember me;
@@ -48,7 +47,7 @@ public class PeerClient {
         while(true) {
             try {
                 System.out.print("> Enter a port: ");
-                PORT = Integer.parseInt(input.nextLine());
+                me.port = Integer.parseInt(input.nextLine());
                 server = new PeerServerThread(this);
                 server.start();
                 break;
