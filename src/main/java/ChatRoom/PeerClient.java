@@ -117,8 +117,8 @@ public final class PeerClient {
             if(message.equals("/help")) {
                 System.out.println(
                         "> Available commands:\n>\n" +
-                        "> /add ADDRESS:PORT\n" +
-                        "> Adds a member to your list of members\n>\n" +
+                        "> /list\n" +
+                        "> Lists all the members connected to the network\n>\n" +
                         "> /quit\n" +
                         "> Leave the chat\n>\n" +
                         "> /details [username]\n" +
@@ -126,12 +126,6 @@ public final class PeerClient {
             } else if(message.equals("/quit")) {
                 online = false;
                 break;
-            } else if (message.startsWith("/add ")) {
-                try {
-                    System.out.println("> TODO: AddMember");
-                } catch(Exception e) {
-                    System.out.println("> " + e.getMessage());
-                }
             } else if(message.startsWith("/details")) {
                 if(message.length() > 9) {  // i.e. /details username
                     boolean found = false;
