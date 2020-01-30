@@ -18,8 +18,8 @@ import java.util.Scanner;
  */
 public class PeerServerThread extends Thread {
     
-    PeerClient peer;
-    ServerSocket server;
+    private final PeerClient peer;
+    private final ServerSocket server;
     
     /**
      * @param c Client this server should be bound to
@@ -29,15 +29,15 @@ public class PeerServerThread extends Thread {
         peer = c;
         try {
             // Create a server
-            server = new ServerSocket(peer.me.port);
+            server = new ServerSocket(peer.me.getPort());
             server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
                                     // Without it the client can never join the thread.
             
             // Get IP address to share with others peers
             Socket s = new Socket();
             s.connect(new InetSocketAddress("google.com", 80));
-            c.me.address = s.getLocalAddress().toString().substring(1);
-            System.out.println("> Share your ADDRESS:PORT with other members: " + c.me.address + ":" + c.me.port);
+            c.me.setAddress(s.getLocalAddress().toString().substring(1)); // Substring to remove the "/" from the front
+            System.out.println("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
         } catch (IOException ex) {
             throw new Exception("> Port not available, try another port.");
         }
@@ -74,7 +74,7 @@ public class PeerServerThread extends Thread {
                 else if(objClass.equals("ChatRoom.PeerMember")) {
                     PeerMember m = (PeerMember)obj;
                     Scanner input = new Scanner(System.in);
-                    System.out.print("> Connection request from " + m.userName + ". Add to list (y/n)? ");
+                    System.out.print("> Connection request from " + m.getUsername() + ". Add to list (y/n)? ");
                     String ans = input.nextLine().toLowerCase();
                     if(ans.equals("y")) {
                         ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());

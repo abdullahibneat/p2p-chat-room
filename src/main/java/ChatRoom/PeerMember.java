@@ -8,9 +8,9 @@ import java.io.Serializable;
  * @author Abdullah
  */
 public class PeerMember implements Serializable {
-    String userName;
-    String address;
-    int port;
+    private String userName;
+    private String address;
+    private int port;
     
     /**
      * Initialise a peer using their username.
@@ -44,6 +44,48 @@ public class PeerMember implements Serializable {
         this.address = address;
         this.port = port;
     }
+    
+    /**
+     * Set the username
+     * 
+     * @param userName
+     */
+    public void setUsername(String userName) { this.userName = userName; }
+    
+    /**
+     * Get the username
+     * 
+     * @return username
+     */
+    public String getUsername() { return userName; }
+    
+    /**
+     * Set the host address
+     * 
+     * @param address
+     */
+    public void setAddress(String address) { this.address = address; }
+    
+    /**
+     * Get the host address
+     * 
+     * @return address
+     */
+    public String getAddress() { return address; }
+    
+    /**
+     * Set the port
+     * 
+     * @param port
+     */
+    public void setPort(int port) { this.port = port; }
+    
+    /**
+     * Get the port
+     * 
+     * @return port
+     */
+    public int getPort() { return port; }
     
     /**
      * Display member details on screen

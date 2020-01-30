@@ -19,10 +19,10 @@ import java.util.Scanner;
  * @author Abdullah
  */
 public final class PeerClient {
-    PeerServerThread server; // Server
-    ArrayList<PeerMember> members = new ArrayList<>(); // List of members
-    PeerMember me; // This peer's details
-    boolean online = true; // Sets server status (true = launch server, false = stop server)
+    private PeerServerThread server; // Server
+    protected ArrayList<PeerMember> members = new ArrayList<>(); // List of members
+    protected final PeerMember me; // This peer's details
+    protected boolean online = true; // Sets server status (true = launch server, false = stop server)
     
     public static void main(String[] args) {
         try {
@@ -67,7 +67,7 @@ public final class PeerClient {
         while(true) {
             try {
                 System.out.print("> Enter a port: ");
-                me.port = Integer.parseInt(input.nextLine());
+                me.setPort(Integer.parseInt(input.nextLine()));
                 server = new PeerServerThread(this); // Start server
                 server.start();
                 break;
@@ -132,7 +132,7 @@ public final class PeerClient {
                     String userName = message.substring(9);
                     
                     for(PeerMember m: members) {
-                        if(m.userName.equals(userName)) {
+                        if(m.getUsername().equals(userName)) {
                             found = true;
                             System.out.println(m);
                             break;
@@ -145,7 +145,7 @@ public final class PeerClient {
             } else if(message.equals("/list")) {
                 System.out.println("> Your have " + members.size() + " member(s):");
                 for(PeerMember m: members) {
-                    System.out.println("> " + m.userName);
+                    System.out.println("> " + m.getUsername());
                 }
             } else {
                 // Not a command, send the message
@@ -172,9 +172,9 @@ public final class PeerClient {
     
     public void globalAddMember(PeerMember newMember) throws IOException {
         for(PeerMember m: members) {
-            Socket conn = new Socket(m.address, m.port);
+            Socket conn = new Socket(m.getAddress(), m.getPort());
             ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-            out.writeObject("newMember:"+newMember.userName+":"+newMember.address+":"+newMember.port);
+            out.writeObject("newMember:"+newMember.getUsername()+":"+newMember.getAddress()+":"+newMember.getPort());
             out.flush();
             conn.close();
         }
@@ -190,9 +190,9 @@ public final class PeerClient {
     public void sendMessage(String message) {
         for(PeerMember member: members) {
             try {
-                Socket conn = new Socket(member.address, member.port);
+                Socket conn = new Socket(member.getAddress(), member.getPort());
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject(me.userName + ": " + message);
+                out.writeObject(me.getUsername() + ": " + message);
                 out.flush();
                 conn.close();
             } catch (IOException e) {
