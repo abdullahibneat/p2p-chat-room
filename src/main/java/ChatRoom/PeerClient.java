@@ -95,8 +95,7 @@ public final class PeerClient {
             }
             
             try {
-                PeerMember m = sendRequest(existingMember);
-                members.add(m);
+                members = sendRequest(existingMember);
                 System.out.println("> Connected!");
                 break;
             } catch(IOException | ClassNotFoundException e) {
@@ -166,27 +165,26 @@ public final class PeerClient {
         System.out.println("Connection terminated.");
     }
     
-    private PeerMember sendRequest(String addressPortString) throws IOException, ClassNotFoundException {
+    private ArrayList<PeerMember> sendRequest(String addressPortString) throws IOException, ClassNotFoundException {
         Socket conn = new Socket(addressPortString.split(":")[0], Integer.parseInt(addressPortString.split(":")[1]));
         ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
         out.writeObject(me);
         out.flush();
         ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
-        PeerMember m = (PeerMember) in.readObject();
+        ArrayList<PeerMember> m = (ArrayList<PeerMember>) in.readObject();
         conn.close();
         return m;
     }
     
     public void globalAddMember(PeerMember newMember) throws IOException {
         for(PeerMember m: members) {
-            if(!m.userName.equals(newMember.userName)) {
-                Socket conn = new Socket(m.address, m.port);
-                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject("newMember:"+m.userName+":"+m.address+":"+m.port);
-                out.flush();
-                conn.close();
-            }
+            Socket conn = new Socket(m.address, m.port);
+            ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+            out.writeObject("newMember:"+newMember.userName+":"+newMember.address+":"+newMember.port);
+            out.flush();
+            conn.close();
         }
+        members.add(newMember);
         System.out.println("> Everyone notified of new member.");
     }
     

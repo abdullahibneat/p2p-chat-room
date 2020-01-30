@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -62,7 +63,10 @@ public class PeerServerThread extends Thread {
                     String message = (String)obj;
                     
                     if(message.startsWith("newMember")) {
-                        System.out.println("> Add member " + message);
+                        // New member joined the network, add them to the list
+                        String[] newMemberArr = message.substring(10).split(":");
+                        System.out.println("> New member \"" + newMemberArr[0] + "\" joined!");
+                        peer.members.add(new PeerMember(newMemberArr[0], newMemberArr[1], Integer.parseInt(newMemberArr[2])));
                     } else {
                         System.out.println("> " + message);
                     }
@@ -73,11 +77,15 @@ public class PeerServerThread extends Thread {
                     System.out.print("> Connection request from " + m.userName + ". Add to list (y/n)? ");
                     String ans = input.nextLine().toLowerCase();
                     if(ans.equals("y")) {
-                        peer.members.add(m);
                         ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                        out.writeObject(peer.me);
+                        
+                        // Send list of all members
+                        ArrayList<PeerMember> everyone = new ArrayList<>();
+                        for(PeerMember existingMember: peer.members) everyone.add(existingMember);
+                        everyone.add(peer.me);
+                        out.writeObject(everyone);
+                        
                         out.flush();
-                        System.out.println(peer.members.size());
                         peer.globalAddMember(m);
                         System.out.println("> Send message to peer saying I've added them");
                     } else {

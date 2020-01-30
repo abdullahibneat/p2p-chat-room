@@ -33,6 +33,19 @@ public class PeerMember implements Serializable {
     }
     
     /**
+     * Initialise a peer knowing their username, address and port.
+     * 
+     * @param userName Username
+     * @param address Host address
+     * @param port Port
+     */
+    public PeerMember(String userName, String address, int port) {
+        this.userName = userName;
+        this.address = address;
+        this.port = port;
+    }
+    
+    /**
      * Display member details on screen
      * 
      * @return Details as string.
