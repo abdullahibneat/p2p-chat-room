@@ -22,9 +22,9 @@ public class PeerServerThread extends Thread {
     
     /**
      * @param c Client this server should be bound to
-     * @throws java.lang.Exception
+     * @throws ChatRoom.PortNotAvailbleException
      */
-    public PeerServerThread(PeerClient c) throws Exception {
+    public PeerServerThread(PeerClient c) throws PortNotAvailbleException {
         peer = c;
         try {
             // Create a server
@@ -34,7 +34,7 @@ public class PeerServerThread extends Thread {
             
             peer.writeToChat("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
         } catch (IOException ex) {
-            throw new Exception("> Port not available, try another port.");
+            throw new PortNotAvailbleException("Port not available, try another port.");
         }
     }
     

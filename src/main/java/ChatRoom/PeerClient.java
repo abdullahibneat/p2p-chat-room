@@ -6,6 +6,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -45,9 +47,10 @@ public final class PeerClient {
      * @param chat TextArea to display all messages
      * @param sendMessage Button to send a new message
      * @param membersBar Side bar where members are listed
-     * @throws java.lang.Exception
+     * @throws ChatRoom.PortNotAvailbleException
+     * @throws ChatRoom.UnknownMemberException
      */
-    public PeerClient(PeerMember client, String existingMemberAddress, int existingMemberPort, JTextArea messageInput, JTextPane chat, JButton sendMessage, JTextField membersBar) throws Exception {
+    public PeerClient(PeerMember client, String existingMemberAddress, int existingMemberPort, JTextArea messageInput, JTextPane chat, JButton sendMessage, JTextField membersBar) throws PortNotAvailbleException, UnknownMemberException {
         me = client;
         this.messageInput = messageInput;
         this.chat = chat;
@@ -109,12 +112,12 @@ public final class PeerClient {
      * 
      * @throws java.lang.Exception Port not available
      */
-    private void initServer() throws Exception {
+    private void initServer() throws PortNotAvailbleException {
         server = new PeerServerThread(this);
         server.start();
     }
     
-    private void initClient(String existingMemberAddress, int existingMemberPort) {
+    private void initClient(String existingMemberAddress, int existingMemberPort) throws UnknownMemberException {
         
         /**
          * CONNECT TO OTHER PEERS or CREATE A NEW NETWORK
@@ -132,7 +135,7 @@ public final class PeerClient {
                 members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
                 writeToChat("Connected!");
                 updateMembersList();
-            } catch(IOException | ClassNotFoundException e) {
+            } catch(ClassNotFoundException e) {
                 writeToChat("Received invalid response.");
             }
         }
@@ -161,24 +164,32 @@ public final class PeerClient {
         chat.setText(chat.getText() + "\n" + message);
     }
     
-    private ArrayList<PeerMember> sendRequest(String addressPortString) throws IOException, ClassNotFoundException {
-        Socket conn = new Socket(addressPortString.split(":")[0], Integer.parseInt(addressPortString.split(":")[1]));
-        ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-        out.writeObject(me);
-        out.flush();
-        ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
-        ArrayList<PeerMember> m = (ArrayList<PeerMember>) in.readObject();
-        conn.close();
-        return m;
+    private ArrayList<PeerMember> sendRequest(String addressPortString) throws UnknownMemberException, ClassNotFoundException {
+        try {
+            Socket conn = new Socket(addressPortString.split(":")[0], Integer.parseInt(addressPortString.split(":")[1]));
+            ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+            out.writeObject(me);
+            out.flush();
+            ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
+            ArrayList<PeerMember> m = (ArrayList<PeerMember>) in.readObject();
+            conn.close();
+            return m;
+        } catch (IOException e) {
+            throw new UnknownMemberException("Member at " + addressPortString + "does not exist.");
+        }
     }
     
-    public void globalAddMember(PeerMember newMember) throws IOException {
+    public void globalAddMember(PeerMember newMember) {
         for(PeerMember m: members) {
-            Socket conn = new Socket(m.getAddress(), m.getPort());
-            ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-            out.writeObject("newMember:"+newMember.getUsername()+":"+newMember.getAddress()+":"+newMember.getPort());
-            out.flush();
-            conn.close();
+            try {
+                Socket conn = new Socket(m.getAddress(), m.getPort());
+                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                out.writeObject("newMember:"+newMember.getUsername()+":"+newMember.getAddress()+":"+newMember.getPort());
+                out.flush();
+                conn.close();
+            } catch (IOException ex) {
+                writeToChat("Could not send message to member " + m.getUsername());
+            }
         }
         members.add(newMember);
         updateMembersList();
@@ -199,7 +210,7 @@ public final class PeerClient {
                 out.flush();
                 conn.close();
             } catch (IOException e) {
-                System.out.println("Member does not exist");
+                writeToChat("Could not send message to member " + member.getUsername());
             }
         }
     }

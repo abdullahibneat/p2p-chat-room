@@ -1,5 +1,6 @@
 package ChatRoom;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -19,21 +20,26 @@ public class PeerMember implements Serializable {
      * 
      * @param userName Username
      * @param port Port
-     * @throws java.lang.Exception
+     * @throws ChatRoom.InvalidUsernameException
+     * @throws ChatRoom.NoInternetException
      */
-    public PeerMember(String userName, int port) throws Exception {
+    public PeerMember(String userName, int port) throws InvalidUsernameException, NoInternetException {
         
-        // Check username format
-        if(!(userName.isEmpty() || userName.contains(" "))) {
-            this.userName = userName;
-        } else throw new Exception("Username cannot be empty or contain spaces.");
-        
-        this.port = port;
-        
-        // Get this peer's host address
-        Socket s = new Socket();
-        s.connect(new InetSocketAddress("google.com", 80));
-        this.address = s.getLocalAddress().toString().substring(1); // Substring to remove the "/" from the front
+        try {
+            // Check username format
+            if(!(userName.isEmpty() || userName.contains(" "))) {
+                this.userName = userName;
+            } else throw new InvalidUsernameException("Username cannot be empty or contain spaces.");
+            
+            this.port = port;
+            
+            // Get this peer's host address
+            Socket s = new Socket();
+            s.connect(new InetSocketAddress("google.com", 80));
+            this.address = s.getLocalAddress().toString().substring(1); // Substring to remove the "/" from the front
+        } catch (IOException ex) {
+            throw new NoInternetException("Could not get this machine's host address automatically.");
+        }
     }
     
     /**
