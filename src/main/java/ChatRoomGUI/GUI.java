@@ -30,8 +30,10 @@ public class GUI extends javax.swing.JFrame {
         splitPane = new javax.swing.JSplitPane();
         leftPanel = new javax.swing.JScrollPane();
         membersList = new javax.swing.JPanel();
+        memberPlaceholder = new javax.swing.JTextField();
         rightPanel = new javax.swing.JSplitPane();
         chatPanel = new javax.swing.JScrollPane();
+        chatText = new javax.swing.JTextPane();
         messagePanel = new javax.swing.JPanel();
         messageInputPanel = new javax.swing.JScrollPane();
         messageInput = new javax.swing.JTextArea();
@@ -45,18 +47,29 @@ public class GUI extends javax.swing.JFrame {
         splitPane.setOneTouchExpandable(true);
 
         membersList.setLayout(new javax.swing.BoxLayout(membersList, javax.swing.BoxLayout.Y_AXIS));
+
+        memberPlaceholder.setEditable(false);
+        memberPlaceholder.setText("Members will be listed here.");
+        membersList.add(memberPlaceholder);
+
         leftPanel.setViewportView(membersList);
 
         splitPane.setLeftComponent(leftPanel);
 
         rightPanel.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         rightPanel.setResizeWeight(0.8);
+
+        chatText.setEditable(false);
+        chatText.setText("Chat will be displayed here.");
+        chatPanel.setViewportView(chatText);
+
         rightPanel.setTopComponent(chatPanel);
 
         messagePanel.setLayout(new javax.swing.BoxLayout(messagePanel, javax.swing.BoxLayout.X_AXIS));
 
         messageInput.setColumns(20);
         messageInput.setRows(5);
+        messageInput.setText("Typle message here...");
         messageInputPanel.setViewportView(messageInput);
 
         messagePanel.add(messageInputPanel);
@@ -121,12 +134,14 @@ public class GUI extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane chatPanel;
+    public javax.swing.JTextPane chatText;
     private javax.swing.JScrollPane leftPanel;
+    public javax.swing.JTextField memberPlaceholder;
     private javax.swing.JPanel membersList;
-    private javax.swing.JTextArea messageInput;
+    public javax.swing.JTextArea messageInput;
     private javax.swing.JScrollPane messageInputPanel;
     private javax.swing.JPanel messagePanel;
-    private javax.swing.JButton messageSendButton;
+    public javax.swing.JButton messageSendButton;
     private javax.swing.JSplitPane rightPanel;
     private javax.swing.JSplitPane splitPane;
     // End of variables declaration//GEN-END:variables

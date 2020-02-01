@@ -1,6 +1,8 @@
 package ChatRoom;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 /**
  * Class to store details of each peer.
@@ -9,27 +11,29 @@ import java.io.Serializable;
  */
 public class PeerMember implements Serializable {
     private String userName;
-    private String address;
-    private int port;
+    private final String address;
+    private final int port;
     
     /**
-     * Initialise a peer using their username.
+     * Initialise a peer knowing their username and port, and figure out the address.
      * 
-     * @param userName Username of peer
-     */
-    public PeerMember(String userName) {
-        this.userName = userName;
-    }
-    
-    /**
-     * Initialise a peer knowing their address and port.
-     * 
-     * @param address Host address
+     * @param userName Username
      * @param port Port
+     * @throws java.lang.Exception
      */
-    public PeerMember(String address, int port) {
-        this.address = address;
+    public PeerMember(String userName, int port) throws Exception {
+        
+        // Check username format
+        if(!(userName.isEmpty() || userName.contains(" "))) {
+            this.userName = userName;
+        } else throw new Exception("Username cannot be empty or contain spaces.");
+        
         this.port = port;
+        
+        // Get this peer's host address
+        Socket s = new Socket();
+        s.connect(new InetSocketAddress("google.com", 80));
+        this.address = s.getLocalAddress().toString().substring(1); // Substring to remove the "/" from the front
     }
     
     /**
@@ -46,13 +50,6 @@ public class PeerMember implements Serializable {
     }
     
     /**
-     * Set the username
-     * 
-     * @param userName
-     */
-    public void setUsername(String userName) { this.userName = userName; }
-    
-    /**
      * Get the username
      * 
      * @return username
@@ -60,25 +57,11 @@ public class PeerMember implements Serializable {
     public String getUsername() { return userName; }
     
     /**
-     * Set the host address
-     * 
-     * @param address
-     */
-    public void setAddress(String address) { this.address = address; }
-    
-    /**
      * Get the host address
      * 
      * @return address
      */
     public String getAddress() { return address; }
-    
-    /**
-     * Set the port
-     * 
-     * @param port
-     */
-    public void setPort(int port) { this.port = port; }
     
     /**
      * Get the port

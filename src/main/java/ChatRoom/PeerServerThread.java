@@ -3,11 +3,10 @@ package ChatRoom;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Scanner;
+import javax.swing.JOptionPane;
 
 /**
  * Server component for a peer.
@@ -33,11 +32,7 @@ public class PeerServerThread extends Thread {
             server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
                                     // Without it the client can never join the thread.
             
-            // Get IP address to share with others peers
-            Socket s = new Socket();
-            s.connect(new InetSocketAddress("google.com", 80));
-            c.me.setAddress(s.getLocalAddress().toString().substring(1)); // Substring to remove the "/" from the front
-            System.out.println("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
+            peer.chat.setText(peer.chat.getText() + "\n> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
         } catch (IOException ex) {
             throw new Exception("> Port not available, try another port.");
         }
@@ -65,18 +60,16 @@ public class PeerServerThread extends Thread {
                     if(message.startsWith("newMember")) {
                         // New member joined the network, add them to the list
                         String[] newMemberArr = message.substring(10).split(":");
-                        System.out.println("> New member \"" + newMemberArr[0] + "\" joined!");
+                        peer.chat.setText(peer.chat.getText() + "\n> New member \"" + newMemberArr[0] + "\" joined!");
                         peer.members.add(new PeerMember(newMemberArr[0], newMemberArr[1], Integer.parseInt(newMemberArr[2])));
                     } else {
-                        System.out.println("> " + message);
+                        peer.chat.setText(peer.chat.getText() + "\n> " + message);
                     }
                 }
                 else if(objClass.equals("ChatRoom.PeerMember")) {
                     PeerMember m = (PeerMember)obj;
-                    Scanner input = new Scanner(System.in);
-                    System.out.print("> Connection request from " + m.getUsername() + ". Add to list (y/n)? ");
-                    String ans = input.nextLine().toLowerCase();
-                    if(ans.equals("y")) {
+                    int ans = JOptionPane.showConfirmDialog(null, "> Connection request from " + m.getUsername() + ". Add to list?");
+                    if(ans == JOptionPane.YES_OPTION) {
                         ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
                         
                         // Send list of all members
@@ -87,9 +80,9 @@ public class PeerServerThread extends Thread {
                         
                         out.flush();
                         peer.globalAddMember(m);
-                        System.out.println("> Send message to peer saying I've added them");
+                        peer.chat.setText(peer.chat.getText() + "\n> Send message to peer saying I've added them");
                     } else {
-                        System.out.println("> Ignoring...");
+                        peer.chat.setText(peer.chat.getText() + "\n> Ignoring...");
                     }
                 }
                 
