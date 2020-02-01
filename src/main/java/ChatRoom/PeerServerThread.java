@@ -32,7 +32,7 @@ public class PeerServerThread extends Thread {
             server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
                                     // Without it the client can never join the thread.
             
-            peer.chat.setText(peer.chat.getText() + "\n> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
+            peer.writeToChat("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
         } catch (IOException ex) {
             throw new Exception("> Port not available, try another port.");
         }
@@ -60,10 +60,10 @@ public class PeerServerThread extends Thread {
                     if(message.startsWith("newMember")) {
                         // New member joined the network, add them to the list
                         String[] newMemberArr = message.substring(10).split(":");
-                        peer.chat.setText(peer.chat.getText() + "\n> New member \"" + newMemberArr[0] + "\" joined!");
+                        peer.writeToChat("> New member \"" + newMemberArr[0] + "\" joined!");
                         peer.members.add(new PeerMember(newMemberArr[0], newMemberArr[1], Integer.parseInt(newMemberArr[2])));
                     } else {
-                        peer.chat.setText(peer.chat.getText() + "\n> " + message);
+                        peer.writeToChat(message);
                     }
                 }
                 else if(objClass.equals("ChatRoom.PeerMember")) {
@@ -80,9 +80,8 @@ public class PeerServerThread extends Thread {
                         
                         out.flush();
                         peer.globalAddMember(m);
-                        peer.chat.setText(peer.chat.getText() + "\n> Send message to peer saying I've added them");
                     } else {
-                        peer.chat.setText(peer.chat.getText() + "\n> Ignoring...");
+                        peer.writeToChat("> Ignoring...");
                     }
                 }
                 

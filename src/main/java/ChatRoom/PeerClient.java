@@ -52,7 +52,6 @@ public final class PeerClient {
         
         sendMessage.addActionListener((ActionEvent e) -> {
             String message = messageInput.getText();
-            System.out.println(message);
             if(message.startsWith(">")) return;
 
             // Check if user typed a command
@@ -91,8 +90,8 @@ public final class PeerClient {
                 }
             } else {
                 // Not a command, send the message
-                chat.setText(chat.getText() + "\n" + message);
-                sendMessage(message);
+                chat.setText(chat.getText() + "\n" + message); // Show message in chat
+                sendMessage(message); // Send message to all members
             }
             messageInput.setText("");
         });
@@ -122,25 +121,13 @@ public final class PeerClient {
 
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
-            chat.setText(chat.getText() + "\nYou're the coordinator");
+            writeToChat("You're the coordinator");
         } else {
             try {
                 members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
-                chat.setText(chat.getText() + "\nConnected!");
+                writeToChat("Connected!");
             } catch(IOException | ClassNotFoundException e) {
-                chat.setText(chat.getText() + "\nReceived invalid response.");
-            }
-        }
-        
-        /**
-         * SEND MESSAGES
-         * 
-         * This is the actual client. Type a message to send to other peers,
-         * or type special commands to perform certain actions.
-         */
-        while(online) {
-            if(messageIsReady) {
-                messageIsReady = false;
+                writeToChat("Received invalid response.");
             }
         }
         
@@ -148,10 +135,14 @@ public final class PeerClient {
             // User wants to quit, wait for server thread to finish.
             server.join();
         } catch (InterruptedException e) {
-            chat.setText(chat.getText() + "\nServer was interrupted");
+            writeToChat("Server was interrupted");
         }
         
-        chat.setText(chat.getText() + "\nConnection terminated.");
+        writeToChat("Connection terminated.");
+    }
+    
+    protected void writeToChat(String message) {
+        chat.setText(chat.getText() + "\n" + message);
     }
     
     private ArrayList<PeerMember> sendRequest(String addressPortString) throws IOException, ClassNotFoundException {
