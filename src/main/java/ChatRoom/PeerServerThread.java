@@ -62,6 +62,7 @@ public class PeerServerThread extends Thread {
                         String[] newMemberArr = message.substring(10).split(":");
                         peer.writeToChat("> New member \"" + newMemberArr[0] + "\" joined!");
                         peer.members.add(new PeerMember(newMemberArr[0], newMemberArr[1], Integer.parseInt(newMemberArr[2])));
+                        peer.updateMembersList();
                     } else {
                         peer.writeToChat(message);
                     }
