@@ -32,7 +32,7 @@ public class PeerServerThread extends Thread {
             server.setSoTimeout(5); // Let server accept for 5ms instead of infinity
                                     // Without it the client can never join the thread.
             
-            peer.writeToChat("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
+            peer.postMessage("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
         } catch (IOException ex) {
             throw new PortNotAvailbleException("Port not available, try another port.");
         }
@@ -60,11 +60,10 @@ public class PeerServerThread extends Thread {
                     if(message.startsWith("newMember")) {
                         // New member joined the network, add them to the list
                         String[] newMemberArr = message.substring(10).split(":");
-                        peer.writeToChat("> New member \"" + newMemberArr[0] + "\" joined!");
+                        peer.postMessage("> New member \"" + newMemberArr[0] + "\" joined!");
                         peer.members.add(new PeerMember(newMemberArr[0], newMemberArr[1], Integer.parseInt(newMemberArr[2])));
-                        peer.updateMembersList();
                     } else {
-                        peer.writeToChat(message);
+                        peer.postMessage(message);
                     }
                 }
                 else if(objClass.equals("ChatRoom.PeerMember")) {
@@ -82,7 +81,7 @@ public class PeerServerThread extends Thread {
                         out.flush();
                         peer.globalAddMember(m);
                     } else {
-                        peer.writeToChat("> Ignoring...");
+                        peer.postMessage("> Ignoring...");
                     }
                 }
                 

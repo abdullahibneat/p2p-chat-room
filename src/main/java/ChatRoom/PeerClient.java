@@ -1,17 +1,11 @@
 package ChatRoom;
 
-import java.awt.event.ActionEvent;
+import ChatRoomGUI.GUI;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JButton;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
 
 /**
  * Class responsible for creating a new peer.
@@ -24,18 +18,13 @@ import javax.swing.JTextPane;
  *
  * @author Abdullah
  */
-public final class PeerClient {
+public class PeerClient {
+    private GUI gui;
     private PeerServerThread server; // Server
     protected ArrayList<PeerMember> members = new ArrayList<>(); // List of members
     protected final PeerMember me; // This peer's details
     protected boolean online = true; // Sets server status (true = launch server, false = stop server)
     protected boolean messageIsReady = false; // Set to true when message is ready to be sent.
-    
-    // Swing components
-    private final JTextArea messageInput;
-    protected final JTextPane chat;
-    private final JButton sendMessage;
-    private final JTextField membersBar;
     
     /**
      * Creates a single client.
@@ -43,66 +32,19 @@ public final class PeerClient {
      * @param client Owner of this client
      * @param existingMemberAddress Host address of an existing member
      * @param existingMemberPort Port number of the existing member
-     * @param messageInput TextArea to get message input from member
-     * @param chat TextArea to display all messages
-     * @param sendMessage Button to send a new message
-     * @param membersBar Side bar where members are listed
      * @throws ChatRoom.PortNotAvailbleException
      * @throws ChatRoom.UnknownMemberException
      */
-    public PeerClient(PeerMember client, String existingMemberAddress, int existingMemberPort, JTextArea messageInput, JTextPane chat, JButton sendMessage, JTextField membersBar) throws PortNotAvailbleException, UnknownMemberException {
+    public PeerClient(PeerMember client, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException {
         me = client;
-        this.messageInput = messageInput;
-        this.chat = chat;
-        this.sendMessage = sendMessage;
-        this.membersBar = membersBar;
+        gui = new GUI();
         
-        sendMessage.addActionListener((ActionEvent e) -> {
-            String message = messageInput.getText();
-            if(message.startsWith(">")) return;
-
-            // Check if user typed a command
-            if(message.equals("/help")) {
-                System.out.println(
-                        "> Available commands:\n>\n" +
-                        "> /list\n" +
-                        "> Lists all the members connected to the network\n>\n" +
-                        "> /quit\n" +
-                        "> Leave the chat\n>\n" +
-                        "> /details [username]\n" +
-                        "> Lists your details unless a username is specified");
-            } else if(message.equals("/quit")) {
-                System.out.println("User wants to quit");
-                online = false;
-            } else if(message.startsWith("/details")) {
-                if(message.length() > 9) {  // i.e. /details username
-                    boolean found = false;
-                    String userName = message.substring(9);
-
-                    for(PeerMember m: members) {
-                        if(m.getUsername().equals(userName)) {
-                            found = true;
-                            System.out.println(m);
-                            break;
-                        }
-                    }
-                    if(!found) System.out.println("> Member does not exist");
-                } else {
-                    System.out.println(me);
-                }
-            } else if(message.equals("/list")) {
-                System.out.println("> Your have " + members.size() + " member(s):");
-                for(PeerMember m: members) {
-                    System.out.println("> " + m.getUsername());
-                }
-            } else {
-                // Not a command, send the message
-                chat.setText(chat.getText() + "\n" + message); // Show message in chat
-                sendMessage(message); // Send message to all members
-            }
-            messageInput.setText("");
+        gui.messageSendButton.addActionListener(e -> {
+            sendMessage(gui.messageInput.getText());
+            gui.messageInput.setText("");
         });
         
+        gui.setVisible(true);
         initServer();
         initClient(existingMemberAddress, existingMemberPort);
     }
@@ -128,15 +70,13 @@ public final class PeerClient {
 
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
-            writeToChat("You're the coordinator");
-            updateMembersList();
+            postMessage("You're the coordinator");
         } else {
             try {
                 members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
-                writeToChat("Connected!");
-                updateMembersList();
+                postMessage("Connected!");
             } catch(ClassNotFoundException e) {
-                writeToChat("Received invalid response.");
+                System.out.println("Received invalid response.");
             }
         }
         
@@ -144,24 +84,10 @@ public final class PeerClient {
             // User wants to quit, wait for server thread to finish.
             server.join();
         } catch (InterruptedException e) {
-            writeToChat("Server was interrupted");
+            System.out.println("Server was interrupted");
         }
         
-        writeToChat("Connection terminated.");
-    }
-    
-    protected void updateMembersList() {
-        if(members.isEmpty()) {
-            membersBar.setText("No members connected");
-            return;
-        }
-        String membersList = "";
-        for(PeerMember m: members) membersList += m.getUsername() + "\n";
-        membersBar.setText(membersList);
-    }
-    
-    protected void writeToChat(String message) {
-        chat.setText(chat.getText() + "\n" + message);
+        System.out.println("Connection terminated.");
     }
     
     private ArrayList<PeerMember> sendRequest(String addressPortString) throws UnknownMemberException, ClassNotFoundException {
@@ -188,12 +114,11 @@ public final class PeerClient {
                 out.flush();
                 conn.close();
             } catch (IOException ex) {
-                writeToChat("Could not send message to member " + m.getUsername());
+                System.out.println("Could not send message to member " + m.getUsername());
             }
         }
         members.add(newMember);
-        updateMembersList();
-        System.out.println("> Everyone notified of new member.");
+        postMessage("> Everyone notified of new member.");
     }
     
     /**
@@ -202,6 +127,7 @@ public final class PeerClient {
      * @param message Message to be sent
      */
     public void sendMessage(String message) {
+        postMessage(message);
         for(PeerMember member: members) {
             try {
                 Socket conn = new Socket(member.getAddress(), member.getPort());
@@ -210,8 +136,17 @@ public final class PeerClient {
                 out.flush();
                 conn.close();
             } catch (IOException e) {
-                writeToChat("Could not send message to member " + member.getUsername());
+                System.out.println("Could not send message to member " + member.getUsername());
             }
         }
+    }
+    
+    /**
+     * Method to add messages to the chat area
+     * 
+     * @param message Message to be added to the chat
+     */
+    protected void postMessage(String message) {
+        gui.chatText.setText(gui.chatText.getText() + "\n" + message);
     }
 }

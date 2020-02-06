@@ -1,6 +1,5 @@
 package ChatRoom;
 
-import ChatRoomGUI.GUI;
 import javax.swing.JOptionPane;
 
 /**
@@ -14,11 +13,9 @@ public class Main {
             String myUsername = JOptionPane.showInputDialog("My username");
             int myPort = Integer.parseInt(JOptionPane.showInputDialog("My port"));
             PeerMember m = new PeerMember(myUsername, myPort);
-            GUI gui = new GUI();
-            gui.setVisible(true);
             String host = JOptionPane.showInputDialog("Other Member host");
             int port = Integer.parseInt(JOptionPane.showInputDialog("Other member port"));
-            PeerClient c = new PeerClient(m, host, port, gui.messageInput, gui.chatText, gui.messageSendButton, gui.memberPlaceholder);
+            PeerClient c = new PeerClient(m, host, port);
         } catch (InvalidUsernameException ex) {
             System.out.println("Invalid username.");
         } catch (NoInternetException ex) {
