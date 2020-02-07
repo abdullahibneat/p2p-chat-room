@@ -30,7 +30,6 @@ public class GUI extends javax.swing.JFrame {
         splitPane = new javax.swing.JSplitPane();
         leftPanel = new javax.swing.JScrollPane();
         membersList = new javax.swing.JPanel();
-        memberPlaceholder = new javax.swing.JTextField();
         rightPanel = new javax.swing.JSplitPane();
         chatPanel = new javax.swing.JScrollPane();
         chatText = new javax.swing.JTextPane();
@@ -47,11 +46,6 @@ public class GUI extends javax.swing.JFrame {
         splitPane.setOneTouchExpandable(true);
 
         membersList.setLayout(new javax.swing.BoxLayout(membersList, javax.swing.BoxLayout.Y_AXIS));
-
-        memberPlaceholder.setEditable(false);
-        memberPlaceholder.setText("Members will be listed here.");
-        membersList.add(memberPlaceholder);
-
         leftPanel.setViewportView(membersList);
 
         splitPane.setLeftComponent(leftPanel);
@@ -136,8 +130,7 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JScrollPane chatPanel;
     public javax.swing.JTextPane chatText;
     private javax.swing.JScrollPane leftPanel;
-    public javax.swing.JTextField memberPlaceholder;
-    private javax.swing.JPanel membersList;
+    public javax.swing.JPanel membersList;
     public javax.swing.JTextArea messageInput;
     private javax.swing.JScrollPane messageInputPanel;
     private javax.swing.JPanel messagePanel;

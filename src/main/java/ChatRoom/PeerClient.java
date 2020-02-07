@@ -1,6 +1,7 @@
 package ChatRoom;
 
 import ChatRoomGUI.GUI;
+import ChatRoomGUI.MemberGUI;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -74,6 +75,7 @@ public class PeerClient {
         } else {
             try {
                 members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
+                updateMembersList();
                 postMessage("Connected!");
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
@@ -118,6 +120,7 @@ public class PeerClient {
             }
         }
         members.add(newMember);
+        updateMembersList();
         postMessage("> Everyone notified of new member.");
     }
     
@@ -148,5 +151,14 @@ public class PeerClient {
      */
     protected void postMessage(String message) {
         gui.chatText.setText(gui.chatText.getText() + "\n" + message);
+    }
+    
+    protected void updateMembersList() {
+        gui.membersList.removeAll();
+        for(PeerMember member: members) {
+            MemberGUI m = new MemberGUI();
+            m.setMemberName(member.getUsername());
+            gui.membersList.add(m);
+        }
     }
 }
