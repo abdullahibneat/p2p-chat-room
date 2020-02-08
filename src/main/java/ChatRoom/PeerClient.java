@@ -156,9 +156,9 @@ public class PeerClient {
     protected void updateMembersList() {
         gui.membersList.removeAll();
         for(PeerMember member: members) {
-            MemberGUI m = new MemberGUI();
-            m.setMemberName(member.getUsername());
+            MemberGUI m = new MemberGUI(member.getUsername());
             gui.membersList.add(m);
         }
+        gui.revalidate();
     }
 }

@@ -10,26 +10,14 @@ import javax.swing.JPanel;
  */
 public class MemberGUI extends JPanel {
     
-    private final JLabel memberName = new JLabel("Member Name Here");
-    
-    public MemberGUI() {
-        init();
+    public MemberGUI(String memberName) {
+        init(memberName);
     }
     
-    private void init() {
+    private void init(String memberName) {
         setPreferredSize(new Dimension(0, 50));
         setMaximumSize(new Dimension(5000, 50));
-        add(memberName);
+        add(new JLabel(memberName));
         setVisible(true);
-    }
-    
-    public void setMemberName(String name) {
-        memberName.setText(name);
-        revalidate();
-        repaint();
-    }
-    
-    public JLabel getMemberName() {
-        return memberName;
     }
 }
