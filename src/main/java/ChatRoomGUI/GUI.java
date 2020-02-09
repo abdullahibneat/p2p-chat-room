@@ -26,14 +26,15 @@ public class GUI extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
         splitPane = new javax.swing.JSplitPane();
         leftPanel = new javax.swing.JScrollPane();
         membersList = new javax.swing.JPanel();
         rightPanel = new javax.swing.JSplitPane();
-        chatPanel = new javax.swing.JScrollPane();
-        chatText = new javax.swing.JTextPane();
-        messagePanel = new javax.swing.JPanel();
+        rightPanelTop = new javax.swing.JScrollPane();
+        chatPanel = new javax.swing.JPanel();
+        rightPanelBottom = new javax.swing.JPanel();
         messageInputPanel = new javax.swing.JScrollPane();
         messageInput = new javax.swing.JTextArea();
         messageSendButton = new javax.swing.JButton();
@@ -53,25 +54,25 @@ public class GUI extends javax.swing.JFrame {
         rightPanel.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         rightPanel.setResizeWeight(0.8);
 
-        chatText.setEditable(false);
-        chatText.setText("Chat will be displayed here.");
-        chatPanel.setViewportView(chatText);
+        chatPanel.setLayout(new javax.swing.BoxLayout(chatPanel, javax.swing.BoxLayout.Y_AXIS));
+        rightPanelTop.setViewportView(chatPanel);
 
-        rightPanel.setTopComponent(chatPanel);
+        rightPanel.setTopComponent(rightPanelTop);
 
-        messagePanel.setLayout(new javax.swing.BoxLayout(messagePanel, javax.swing.BoxLayout.X_AXIS));
+        rightPanelBottom.setLayout(new javax.swing.BoxLayout(rightPanelBottom, javax.swing.BoxLayout.X_AXIS));
 
         messageInput.setColumns(20);
+        messageInput.setLineWrap(true);
         messageInput.setRows(5);
         messageInput.setText("Typle message here...");
         messageInputPanel.setViewportView(messageInput);
 
-        messagePanel.add(messageInputPanel);
+        rightPanelBottom.add(messageInputPanel);
 
         messageSendButton.setText("Send");
-        messagePanel.add(messageSendButton);
+        rightPanelBottom.add(messageSendButton);
 
-        rightPanel.setRightComponent(messagePanel);
+        rightPanel.setRightComponent(rightPanelBottom);
 
         splitPane.setRightComponent(rightPanel);
 
@@ -127,15 +128,15 @@ public class GUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane chatPanel;
-    public javax.swing.JTextPane chatText;
+    public javax.swing.JPanel chatPanel;
     private javax.swing.JScrollPane leftPanel;
     public javax.swing.JPanel membersList;
     public javax.swing.JTextArea messageInput;
     private javax.swing.JScrollPane messageInputPanel;
-    private javax.swing.JPanel messagePanel;
     public javax.swing.JButton messageSendButton;
     private javax.swing.JSplitPane rightPanel;
+    private javax.swing.JPanel rightPanelBottom;
+    private javax.swing.JScrollPane rightPanelTop;
     private javax.swing.JSplitPane splitPane;
     // End of variables declaration//GEN-END:variables
 }

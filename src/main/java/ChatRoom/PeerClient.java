@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import javax.swing.JLabel;
 
 /**
  * Class responsible for creating a new peer.
@@ -150,7 +151,7 @@ public class PeerClient {
      * @param message Message to be added to the chat
      */
     protected void postMessage(String message) {
-        gui.chatText.setText(gui.chatText.getText() + "\n" + message);
+        gui.chatPanel.add(new JLabel(message));
     }
     
     protected void updateMembersList() {
