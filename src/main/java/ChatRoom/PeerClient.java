@@ -27,6 +27,7 @@ public class PeerClient {
     protected final PeerMember me; // This peer's details
     protected boolean online = true; // Sets server status (true = launch server, false = stop server)
     protected boolean messageIsReady = false; // Set to true when message is ready to be sent.
+    public int lastID = 0;
     
     /**
      * Creates a single client.
@@ -72,11 +73,16 @@ public class PeerClient {
 
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
+            me.setID(lastID); // First member id = 0
             postMessage("You're the coordinator");
         } else {
             try {
                 members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
                 updateMembersList();
+                
+                me.setID(++lastID); // updateMemberList() finds the current highest used ID, so
+                                    // this member will get the next ID number
+                
                 postMessage("Connected!");
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
@@ -109,11 +115,12 @@ public class PeerClient {
     }
     
     public void globalAddMember(PeerMember newMember) {
+        newMember.setID(++lastID); // Assign new ID to the member
         for(PeerMember m: members) {
             try {
                 Socket conn = new Socket(m.getAddress(), m.getPort());
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject("newMember:"+newMember.getUsername()+":"+newMember.getAddress()+":"+newMember.getPort());
+                out.writeObject("newMember:"+newMember.getUsername()+":"+lastID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
                 out.flush();
                 conn.close();
             } catch (IOException ex) {
@@ -157,7 +164,8 @@ public class PeerClient {
     protected void updateMembersList() {
         gui.membersList.removeAll();
         for(PeerMember member: members) {
-            MemberGUI m = new MemberGUI(member.getUsername());
+            if(member.getID() > lastID) lastID = member.getID(); // Find the highest ID
+            MemberGUI m = new MemberGUI(member.getUsername() + "-" + member.getID());
             gui.membersList.add(m);
         }
         gui.revalidate();

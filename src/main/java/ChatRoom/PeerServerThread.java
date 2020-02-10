@@ -59,9 +59,10 @@ public class PeerServerThread extends Thread {
                     
                     if(message.startsWith("newMember")) {
                         // New member joined the network, add them to the list
-                        String[] newMemberArr = message.substring(10).split(":");
+                        String[] newMemberArr = message.substring(10).split(":"); // FORMAT => username:id:address:port
                         peer.postMessage("> New member \"" + newMemberArr[0] + "\" joined!");
-                        peer.members.add(new PeerMember(newMemberArr[0], newMemberArr[1], Integer.parseInt(newMemberArr[2])));
+                        peer.members.add(new PeerMember(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
+                        peer.lastID = Integer.parseInt(newMemberArr[1]); // Update lastID to match this member's ID
                         peer.updateMembersList();
                     } else {
                         peer.postMessage(message);
