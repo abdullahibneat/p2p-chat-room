@@ -25,7 +25,6 @@ public class PeerClient {
     private PeerServerThread server; // Server
     protected ArrayList<PeerMember> members = new ArrayList<>(); // List of members
     protected final PeerMember me; // This peer's details
-    protected boolean online = true; // Sets server status (true = launch server, false = stop server)
     protected boolean messageIsReady = false; // Set to true when message is ready to be sent.
     public int lastID = 0;
     
@@ -88,15 +87,6 @@ public class PeerClient {
                 System.out.println("Received invalid response.");
             }
         }
-        
-        try {
-            // User wants to quit, wait for server thread to finish.
-            server.join();
-        } catch (InterruptedException e) {
-            System.out.println("Server was interrupted");
-        }
-        
-        System.out.println("Connection terminated.");
     }
     
     private ArrayList<PeerMember> sendRequest(String addressPortString) throws UnknownMemberException, ClassNotFoundException {
@@ -159,6 +149,7 @@ public class PeerClient {
      */
     protected void postMessage(String message) {
         gui.chatPanel.add(new JLabel(message));
+        gui.revalidate();
     }
     
     protected void updateMembersList() {
