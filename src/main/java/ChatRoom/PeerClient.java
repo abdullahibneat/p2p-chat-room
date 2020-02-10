@@ -74,6 +74,7 @@ public class PeerClient {
         if(existingMemberAddress.isEmpty()){
             me.setID(lastID); // First member id = 0
             postMessage("You're the coordinator");
+            CoordinatorThread c = new CoordinatorThread(this);
         } else {
             try {
                 members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
@@ -120,6 +121,25 @@ public class PeerClient {
         members.add(newMember);
         updateMembersList();
         postMessage("> Everyone notified of new member.");
+    }
+    
+    public void globalRemoveMember(int id, String userName) {
+        members.removeIf(m -> m.getID() == id); // Remove member
+        updateMembersList();
+        String message = me.getUsername() + ": " + "Member " + userName + " left.";
+        postMessage(message);
+        for(PeerMember m: members) {
+            try {
+                Socket conn = new Socket(m.getAddress(), m.getPort());
+                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                out.writeObject(message);
+                out.writeObject("removeMember:"+id);
+                out.flush();
+                conn.close();
+            } catch(IOException e) {
+                System.out.println("Could not notify member " + m.getUsername());
+            }
+        }
     }
     
     /**

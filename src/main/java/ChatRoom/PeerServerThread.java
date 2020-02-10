@@ -86,6 +86,10 @@ class Handler implements Runnable {
                     peer.members.add(new PeerMember(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
                     peer.lastID = Integer.parseInt(newMemberArr[1]); // Update lastID to match this member's ID
                     peer.updateMembersList();
+                } else if(message.startsWith("removeMember")) {
+                    int removeID = Integer.parseInt(message.split(":")[1]);
+                    peer.members.removeIf(m -> m.getID() == removeID); // Find and remove member
+                    peer.updateMembersList();
                 } else {
                     peer.postMessage(message);
                 }
