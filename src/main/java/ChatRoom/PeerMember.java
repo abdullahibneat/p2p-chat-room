@@ -15,6 +15,7 @@ public class PeerMember implements Serializable {
     private String userName;
     private final String address;
     private final int port;
+    private boolean coordinator = false;
     
     /**
      * Initialise a peer knowing their username and port, and figure out the address.
@@ -94,6 +95,22 @@ public class PeerMember implements Serializable {
      * @return port
      */
     public int getPort() { return port; }
+    
+    /**
+     * Set coordinator status
+     * 
+     * @param state
+     */
+    public void setCoordinatorStatus(boolean state) {
+        coordinator = state;
+    }
+    
+    /**
+     * Get coordinator status
+     * 
+     * @return Coordinator status
+     */
+    public boolean isCoordinator() { return coordinator; }
     
     /**
      * Display member details on screen

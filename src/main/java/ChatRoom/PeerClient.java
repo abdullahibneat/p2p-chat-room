@@ -26,7 +26,10 @@ public class PeerClient {
     protected ArrayList<PeerMember> members = new ArrayList<>(); // List of members
     protected final PeerMember me; // This peer's details
     protected boolean messageIsReady = false; // Set to true when message is ready to be sent.
-    public int lastID = 0;
+    private CoordinatorThread coordinatorThread = null;
+    private boolean nextCoordinator = false; // Check if this peer is the next coordinator
+    private int newestMemberID = -1;
+    private int oldestMemberID = -1; // Oldest member that is NOT a coordinator (i.e. next coordinator)
     
     /**
      * Creates a single client.
@@ -42,7 +45,7 @@ public class PeerClient {
         gui = new GUI();
         
         gui.messageSendButton.addActionListener(e -> {
-            sendMessage(gui.messageInput.getText());
+            sendMessage(gui.messageInput.getText(), false);
             gui.messageInput.setText("");
         });
         
@@ -72,16 +75,13 @@ public class PeerClient {
 
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
-            me.setID(lastID); // First member id = 0
-            postMessage("You're the coordinator");
-            CoordinatorThread c = new CoordinatorThread(this);
+            me.setID(++newestMemberID); // First member id = 0
+            me.setCoordinatorStatus(true); // Become coordinator
+            coordinatorThread = new CoordinatorThread(this);
         } else {
             try {
                 members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
                 updateMembersList();
-                
-                me.setID(++lastID); // updateMemberList() finds the current highest used ID, so
-                                    // this member will get the next ID number
                 
                 postMessage("Connected!");
             } catch(ClassNotFoundException e) {
@@ -99,6 +99,13 @@ public class PeerClient {
             ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
             ArrayList<PeerMember> m = (ArrayList<PeerMember>) in.readObject();
             conn.close();
+            
+            // Assign this peer's ID
+            for(PeerMember member: m) {
+                if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
+            }            
+            me.setID(++newestMemberID);
+            
             return m;
         } catch (IOException e) {
             throw new UnknownMemberException("Member at " + addressPortString + "does not exist.");
@@ -106,18 +113,8 @@ public class PeerClient {
     }
     
     public void globalAddMember(PeerMember newMember) {
-        newMember.setID(++lastID); // Assign new ID to the member
-        for(PeerMember m: members) {
-            try {
-                Socket conn = new Socket(m.getAddress(), m.getPort());
-                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject("newMember:"+newMember.getUsername()+":"+lastID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
-                out.flush();
-                conn.close();
-            } catch (IOException ex) {
-                System.out.println("Could not send message to member " + m.getUsername());
-            }
-        }
+        newMember.setID(++newestMemberID); // Assign new ID to the member
+        sendMessage("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort(), true); // FORMAT => username:id:address:port
         members.add(newMember);
         updateMembersList();
         postMessage("> Everyone notified of new member.");
@@ -128,32 +125,22 @@ public class PeerClient {
         updateMembersList();
         String message = me.getUsername() + ": " + "Member " + userName + " left.";
         postMessage(message);
-        for(PeerMember m: members) {
-            try {
-                Socket conn = new Socket(m.getAddress(), m.getPort());
-                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject(message);
-                out.writeObject("removeMember:"+id);
-                out.flush();
-                conn.close();
-            } catch(IOException e) {
-                System.out.println("Could not notify member " + m.getUsername());
-            }
-        }
+        sendMessage("removeMember:"+id, true);
     }
     
     /**
      * Send a message to all peers in the list.
      * 
      * @param message Message to be sent
+     * @param command Set to true if this is command
      */
-    public void sendMessage(String message) {
-        postMessage(message);
+    public void sendMessage(String message, boolean command) {
+        if(!command) postMessage(message); // Normal message, show it to the sender
         for(PeerMember member: members) {
             try {
                 Socket conn = new Socket(member.getAddress(), member.getPort());
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject(me.getUsername() + ": " + message);
+                out.writeObject(command? message : me.getUsername() + ": " + message);
                 out.flush();
                 conn.close();
             } catch (IOException e) {
@@ -174,11 +161,24 @@ public class PeerClient {
     
     protected void updateMembersList() {
         gui.membersList.removeAll();
+        
+        // Reset lowest and highest ID
+        oldestMemberID = me.getID();
+        newestMemberID = me.getID();
+        
         for(PeerMember member: members) {
-            if(member.getID() > lastID) lastID = member.getID(); // Find the highest ID
+            if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
+            else if(member.getID() < oldestMemberID && !member.isCoordinator()) oldestMemberID = member.getID(); // Find the lowest ID
             MemberGUI m = new MemberGUI(member.getUsername() + "-" + member.getID());
             gui.membersList.add(m);
         }
+        
+        // Check if this peer is the next coordinator
+        if(me.getID() == oldestMemberID && !me.isCoordinator() && !nextCoordinator) {
+            coordinatorThread = new CoordinatorThread(this);
+            nextCoordinator = true;
+        }
+        
         gui.revalidate();
     }
 }

@@ -84,12 +84,22 @@ class Handler implements Runnable {
                     String[] newMemberArr = message.substring(10).split(":"); // FORMAT => username:id:address:port
                     peer.postMessage("> New member \"" + newMemberArr[0] + "\" joined!");
                     peer.members.add(new PeerMember(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
-                    peer.lastID = Integer.parseInt(newMemberArr[1]); // Update lastID to match this member's ID
                     peer.updateMembersList();
                 } else if(message.startsWith("removeMember")) {
+                    System.out.println("removeMember");
                     int removeID = Integer.parseInt(message.split(":")[1]);
+                    System.out.println("with ID " + removeID);
                     peer.members.removeIf(m -> m.getID() == removeID); // Find and remove member
                     peer.updateMembersList();
+                } else if(message.startsWith("newCoordinator")) {
+                    System.out.println("newCoordinator");
+                    int newCoordinatorID = Integer.parseInt(message.split(":")[1]);
+                    for(PeerMember m: peer.members) {
+                        if(m.getID() == newCoordinatorID) {
+                            m.setCoordinatorStatus(true);
+                            break;
+                        }
+                    }
                 } else {
                     peer.postMessage(message);
                 }
