@@ -39,7 +39,7 @@ public class PeerMember implements Serializable {
             Socket s = new Socket();
             s.connect(new InetSocketAddress("google.com", 80));
             this.address = s.getLocalAddress().toString().substring(1); // Substring to remove the "/" from the front
-        } catch (IOException ex) {
+        } catch (IOException e) {
             throw new NoInternetException("Could not get this machine's host address automatically.");
         }
     }
@@ -76,6 +76,7 @@ public class PeerMember implements Serializable {
     /**
      * Set the ID
      * Only allowed on first creation.
+     * 
      * @param id Unique ID
      */
     public void setID(int id) {
@@ -98,11 +99,10 @@ public class PeerMember implements Serializable {
     
     /**
      * Set coordinator status
-     * 
-     * @param state
+     * Once coordinator is set, it can't be reverted.
      */
-    public void setCoordinatorStatus(boolean state) {
-        coordinator = state;
+    public void setCoordinator() {
+        coordinator = true;
     }
     
     /**

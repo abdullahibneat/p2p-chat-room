@@ -20,15 +20,23 @@ public class CoordinatorThread extends Thread {
         this.start();
     }
     
+    /**
+     * Thread to continuously check for members' status.
+     */
     @Override
     public void run() {
         int currentMemberID = -1;
         String currentMemberUsername = "";
         System.out.println("Coordinator thread started");
         while(true) {
+            // Two options. This peer is either:
+            //      - Coordinator
+            //      - Next coordinator
+            
             // If this is the coordinator
             if(peer.me.isCoordinator()) {
                 try {
+                    // Try to connect to each member to make sure they're online
                     for(PeerMember m: peer.members) {
                         currentMemberID = m.getID();
                         currentMemberUsername = m.getUsername();
@@ -38,19 +46,27 @@ public class CoordinatorThread extends Thread {
                     sleep(1000); // Check every second.
                 } catch(IOException e) {
                     peer.globalRemoveMember(currentMemberID, currentMemberUsername);
-                } catch (InterruptedException ex) {
+                } catch (InterruptedException e) {
                     // Peer disconnected
                 }
             } else {
                 // I'm the next coordinator
-                // Find current coordinator
                 PeerMember currentCoordinator = null;
+                
+                // When this peer is the second member, it might happen that
+                // the 1st member (i.e. coordinator) is still sending the list
+                // of members. Wait until member received the full list.
+                while(!peer.online) {}
+                
+                // Find current coordinator
                 for(PeerMember m: peer.members) {
                     if(m.isCoordinator()) {
                         currentCoordinator = m;
                         break;
                     }
                 }
+                
+                // Continuously check if coordinator is online
                 while(true) {
                     try {
                         Socket conn = new Socket(currentCoordinator.getAddress(), currentCoordinator.getPort());
@@ -58,10 +74,10 @@ public class CoordinatorThread extends Thread {
                         sleep(1000); // Check every second.
                     } catch(IOException e) {
                         // Coordinator left, take his role
-                        peer.me.setCoordinatorStatus(true);
+                        peer.me.setCoordinator();
                         peer.globalRemoveMember(currentCoordinator.getID(), currentCoordinator.getUsername());
-                        peer.sendMessage(currentCoordinator.getUsername() + " left, I'm the coordinator now!", false);
-                        peer.sendMessage("newCoordinator:" + peer.me.getID(), true);
+                        peer.sendMessage(currentCoordinator.getUsername() + " left, I'm the coordinator now!");
+                        peer.sendCommand("newCoordinator:" + peer.me.getID());
                         break;
                     } catch(InterruptedException e) {
                         // Peer disconnected

@@ -1,6 +1,6 @@
 package ChatRoom;
 
-import ChatRoomGUI.GUI;
+import ChatRoomGUI.MainGUI;
 import ChatRoomGUI.MemberGUI;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -20,12 +20,12 @@ import javax.swing.JLabel;
  *
  * @author Abdullah
  */
-public class PeerClient {
-    private GUI gui;
+public final class PeerClient {
+    private MainGUI gui;
     private PeerServerThread server; // Server
     protected ArrayList<PeerMember> members = new ArrayList<>(); // List of members
     protected final PeerMember me; // This peer's details
-    protected boolean messageIsReady = false; // Set to true when message is ready to be sent.
+    protected boolean online = false; // Set to true when peer connected to netowrk
     private CoordinatorThread coordinatorThread = null;
     private boolean nextCoordinator = false; // Check if this peer is the next coordinator
     private int newestMemberID = -1;
@@ -34,37 +34,26 @@ public class PeerClient {
     /**
      * Creates a single client.
      * 
-     * @param client Owner of this client
+     * @param me Owner of this client
      * @param existingMemberAddress Host address of an existing member
      * @param existingMemberPort Port number of the existing member
      * @throws ChatRoom.PortNotAvailbleException
      * @throws ChatRoom.UnknownMemberException
      */
-    public PeerClient(PeerMember client, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException {
-        me = client;
-        gui = new GUI();
+    public PeerClient(PeerMember me, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException {
+        this.me = me;
+        gui = new MainGUI();
         
+        // Add action listener to the "Send" button
         gui.messageSendButton.addActionListener(e -> {
-            sendMessage(gui.messageInput.getText(), false);
+            sendMessage(gui.messageInput.getText());
             gui.messageInput.setText("");
         });
         
         gui.setVisible(true);
-        initServer();
-        initClient(existingMemberAddress, existingMemberPort);
-    }
-    
-    /**
-     * Initialise the server
-     * 
-     * @throws java.lang.Exception Port not available
-     */
-    private void initServer() throws PortNotAvailbleException {
+        
+        // Start the server
         server = new PeerServerThread(this);
-        server.start();
-    }
-    
-    private void initClient(String existingMemberAddress, int existingMemberPort) throws UnknownMemberException {
         
         /**
          * CONNECT TO OTHER PEERS or CREATE A NEW NETWORK
@@ -76,23 +65,33 @@ public class PeerClient {
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
             me.setID(++newestMemberID); // First member id = 0
-            me.setCoordinatorStatus(true); // Become coordinator
+            me.setCoordinator(); // Become coordinator
             coordinatorThread = new CoordinatorThread(this);
         } else {
             try {
-                members = sendRequest(existingMemberAddress + ":" + existingMemberPort);
+                members = sendRequest(existingMemberAddress, existingMemberPort);
                 updateMembersList();
-                
                 postMessage("Connected!");
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
             }
         }
+        online = true;
     }
     
-    private ArrayList<PeerMember> sendRequest(String addressPortString) throws UnknownMemberException, ClassNotFoundException {
+    /**
+     * Method to send a request to be added to an existing network.
+     * 
+     * @param address Host of another member
+     * @param port Port of the other member
+     * @return List of all members in the network
+     * @throws ChatRoom.UnknownMemberException
+     * @throws java.lang.ClassNotFoundException
+     */
+    private ArrayList<PeerMember> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException {
         try {
-            Socket conn = new Socket(addressPortString.split(":")[0], Integer.parseInt(addressPortString.split(":")[1]));
+            postMessage("Sending request...");
+            Socket conn = new Socket(address, port);
             ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
             out.writeObject(me);
             out.flush();
@@ -108,39 +107,63 @@ public class PeerClient {
             
             return m;
         } catch (IOException e) {
-            throw new UnknownMemberException("Member at " + addressPortString + "does not exist.");
+            throw new UnknownMemberException("Member at " + address + "does not exist.");
         }
     }
     
+    /**
+     * Method to inform existing members about a new member.
+     * 
+     * @param newMember Details of the new member
+     */
     public void globalAddMember(PeerMember newMember) {
         newMember.setID(++newestMemberID); // Assign new ID to the member
-        sendMessage("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort(), true); // FORMAT => username:id:address:port
+        sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         members.add(newMember);
         updateMembersList();
         postMessage("> Everyone notified of new member.");
     }
     
+    /**
+     * Method to inform the network about a member leaving the group.
+     * 
+     * @param id ID of member who left
+     * @param userName Username of member who left
+     */
     public void globalRemoveMember(int id, String userName) {
         members.removeIf(m -> m.getID() == id); // Remove member
         updateMembersList();
-        String message = me.getUsername() + ": " + "Member " + userName + " left.";
-        postMessage(message);
-        sendMessage("removeMember:"+id, true);
+        sendCommand("removeMember:"+id);
+        sendMessage("Member " + userName + " left.");
     }
     
     /**
-     * Send a message to all peers in the list.
+     * Send a message to all members in the network.
      * 
-     * @param message Message to be sent
-     * @param command Set to true if this is command
+     * @param message
      */
-    public void sendMessage(String message, boolean command) {
-        if(!command) postMessage(message); // Normal message, show it to the sender
+    public void sendMessage(String message) { sendMessage(message, false); }
+    
+    /**
+     * Send a command to all members in the network.
+     * 
+     * @param command
+     */
+    public void sendCommand(String command) { sendMessage(command, true); }
+    
+    /**
+     * Send a String to all peers in the list.
+     * 
+     * @param string Message to be sent
+     * @param isCommand Set to true if this is command
+     */
+    private void sendMessage(String string, boolean isCommand) {
+        if(!isCommand) postMessage(string); // Normal message, show it to the sender
         for(PeerMember member: members) {
             try {
                 Socket conn = new Socket(member.getAddress(), member.getPort());
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject(command? message : me.getUsername() + ": " + message);
+                out.writeObject(isCommand? string : me.getUsername() + ": " + string);
                 out.flush();
                 conn.close();
             } catch (IOException e) {
@@ -159,6 +182,9 @@ public class PeerClient {
         gui.revalidate();
     }
     
+    /**
+     * Method to update the side panel showing the list of members.
+     */
     protected void updateMembersList() {
         gui.membersList.removeAll();
         
@@ -169,7 +195,8 @@ public class PeerClient {
         for(PeerMember member: members) {
             if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
             else if(member.getID() < oldestMemberID && !member.isCoordinator()) oldestMemberID = member.getID(); // Find the lowest ID
-            MemberGUI m = new MemberGUI(member.getUsername() + "-" + member.getID());
+            String level = member.isCoordinator()? "coordinator" : "member";
+            MemberGUI m = new MemberGUI(member.getUsername() + "-" + member.getID() + "-" + level);
             gui.membersList.add(m);
         }
         
@@ -179,6 +206,7 @@ public class PeerClient {
             nextCoordinator = true;
         }
         
-        gui.revalidate();
+        gui.membersList.revalidate();
+        gui.membersList.repaint();
     }
 }
