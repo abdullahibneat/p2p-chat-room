@@ -119,9 +119,6 @@ public class PeerMember implements Serializable {
      */
     @Override
     public String toString() {
-        return      "> Details:"
-                + "\n>    Username: " + userName
-                + "\n>    Address:  " + address
-                + "\n>    Port:     " + port;
+        return "PeerMember{id: " + id + ", username: " + userName + ", address: " + address + ", port: " + port + ", isCoordinator: " + coordinator + "}";
     }
 }
