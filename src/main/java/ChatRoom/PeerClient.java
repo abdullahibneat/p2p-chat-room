@@ -23,7 +23,7 @@ import javax.swing.JLabel;
 public final class PeerClient {
     private MainGUI gui;
     private PeerServerThread server; // Server
-    protected ArrayList<PeerMember> members = new ArrayList<>(); // List of members
+    protected final ArrayList<PeerMember> members; // List of members
     protected final PeerMember me; // This peer's details
     protected boolean online = false; // Set to true when peer connected to netowrk
     private CoordinatorThread coordinatorThread = null;
@@ -61,6 +61,9 @@ public final class PeerClient {
          * The user must either enter a valid address:port combination of
          * an existing member, or leave the field empty to create a new network.
          */
+        
+        // Need to make members ArrayList final, so create a temporary ArrayList
+        ArrayList<PeerMember> tempMembers = new ArrayList<>();
 
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
@@ -69,14 +72,15 @@ public final class PeerClient {
             coordinatorThread = new CoordinatorThread(this);
         } else {
             try {
-                members = sendRequest(existingMemberAddress, existingMemberPort);
-                updateMembersList();
+                tempMembers = sendRequest(existingMemberAddress, existingMemberPort);
                 postMessage("Connected!");
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
             }
         }
+        members = tempMembers;
         online = true;
+        updateMembersList();
     }
     
     /**
@@ -116,7 +120,7 @@ public final class PeerClient {
      * 
      * @param newMember Details of the new member
      */
-    public void globalAddMember(PeerMember newMember) {
+    protected synchronized void globalAddMember(PeerMember newMember) {
         newMember.setID(++newestMemberID); // Assign new ID to the member
         sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         members.add(newMember);
@@ -130,7 +134,7 @@ public final class PeerClient {
      * @param id ID of member who left
      * @param userName Username of member who left
      */
-    public void globalRemoveMember(int id, String userName) {
+    protected synchronized void globalRemoveMember(int id, String userName) {
         members.removeIf(m -> m.getID() == id); // Remove member
         updateMembersList();
         sendCommand("removeMember:"+id);
@@ -142,14 +146,14 @@ public final class PeerClient {
      * 
      * @param message
      */
-    public void sendMessage(String message) { sendMessage(message, false); }
+    protected synchronized void sendMessage(String message) { sendMessage(message, false); }
     
     /**
      * Send a command to all members in the network.
      * 
      * @param command
      */
-    public void sendCommand(String command) { sendMessage(command, true); }
+    protected synchronized void sendCommand(String command) { sendMessage(command, true); }
     
     /**
      * Send a String to all peers in the list.
@@ -157,7 +161,7 @@ public final class PeerClient {
      * @param string Message to be sent
      * @param isCommand Set to true if this is command
      */
-    private void sendMessage(String string, boolean isCommand) {
+    private synchronized void sendMessage(String string, boolean isCommand) {
         if(!isCommand) postMessage(string); // Normal message, show it to the sender
         for(PeerMember member: members) {
             try {
@@ -177,7 +181,7 @@ public final class PeerClient {
      * 
      * @param message Message to be added to the chat
      */
-    protected void postMessage(String message) {
+    protected synchronized void postMessage(String message) {
         gui.chatPanel.add(new JLabel(message));
         gui.revalidate();
     }
@@ -185,7 +189,7 @@ public final class PeerClient {
     /**
      * Method to update the side panel showing the list of members.
      */
-    protected void updateMembersList() {
+    protected synchronized void updateMembersList() {
         gui.membersList.removeAll();
         
         // Reset lowest and highest ID

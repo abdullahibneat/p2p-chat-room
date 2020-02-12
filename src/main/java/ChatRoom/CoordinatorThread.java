@@ -37,11 +37,13 @@ public class CoordinatorThread extends Thread {
             if(peer.me.isCoordinator()) {
                 try {
                     // Try to connect to each member to make sure they're online
-                    for(PeerMember m: peer.members) {
-                        currentMemberID = m.getID();
-                        currentMemberUsername = m.getUsername();
-                        Socket s = new Socket(m.getAddress(), m.getPort());
-                        s.close();
+                    synchronized(peer.members) {
+                        for(PeerMember m: peer.members) {
+                            currentMemberID = m.getID();
+                            currentMemberUsername = m.getUsername();
+                            Socket s = new Socket(m.getAddress(), m.getPort());
+                            s.close();
+                        }
                     }
                     sleep(1000); // Check every second.
                 } catch(IOException e) {
@@ -59,10 +61,12 @@ public class CoordinatorThread extends Thread {
                 while(!peer.online) {}
                 
                 // Find current coordinator
-                for(PeerMember m: peer.members) {
-                    if(m.isCoordinator()) {
-                        currentCoordinator = m;
-                        break;
+                synchronized(peer.members) {
+                    for(PeerMember m: peer.members) {
+                        if(m.isCoordinator()) {
+                            currentCoordinator = m;
+                            break;
+                        }
                     }
                 }
                 

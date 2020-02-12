@@ -86,30 +86,32 @@ class Handler implements Runnable {
             if(objClass.equals("java.lang.String")) {
                 String message = (String)obj;
 
-                if(message.startsWith("newMember")) {
-                    // New member joined the network, add them to the list
-                    String[] newMemberArr = message.substring(10).split(":"); // FORMAT => username:id:address:port
-                    peer.postMessage("New member \"" + newMemberArr[0] + "\" joined!");
-                    peer.members.add(new PeerMember(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
-                    peer.updateMembersList();
-                } else if(message.startsWith("removeMember")) {
-                    // Someone left the group, remove them from the list
-                    int removeID = Integer.parseInt(message.split(":")[1]);
-                    peer.members.removeIf(m -> m.getID() == removeID); // Find and remove member
-                    peer.updateMembersList();
-                } else if(message.startsWith("newCoordinator")) {
-                    // Coordinator changed, update the list.
-                    int newCoordinatorID = Integer.parseInt(message.split(":")[1]);
-                    for(PeerMember m: peer.members) {
-                        if(m.getID() == newCoordinatorID) {
-                            m.setCoordinator();
-                            peer.postMessage(m.getUsername() + " is the new coordinator!");
-                            break;
+                synchronized(peer.members) {
+                    if(message.startsWith("newMember")) {
+                        // New member joined the network, add them to the list
+                        String[] newMemberArr = message.substring(10).split(":"); // FORMAT => username:id:address:port
+                        peer.postMessage("New member \"" + newMemberArr[0] + "\" joined!");
+                        peer.members.add(new PeerMember(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
+                        peer.updateMembersList();
+                    } else if(message.startsWith("removeMember")) {
+                        // Someone left the group, remove them from the list
+                        int removeID = Integer.parseInt(message.split(":")[1]);
+                        peer.members.removeIf(m -> m.getID() == removeID); // Find and remove member
+                        peer.updateMembersList();
+                    } else if(message.startsWith("newCoordinator")) {
+                        // Coordinator changed, update the list.
+                        int newCoordinatorID = Integer.parseInt(message.split(":")[1]);
+                        for(PeerMember m: peer.members) {
+                            if(m.getID() == newCoordinatorID) {
+                                m.setCoordinator();
+                                peer.postMessage(m.getUsername() + " is the new coordinator!");
+                                break;
+                            }
                         }
+                    } else {
+                        // Normal chat message
+                        peer.postMessage(message);
                     }
-                } else {
-                    // Normal chat message
-                    peer.postMessage(message);
                 }
             }
             // If PeerMember, someone is trying to join the network
@@ -121,7 +123,9 @@ class Handler implements Runnable {
 
                     // Send list of all members in the network
                     ArrayList<PeerMember> everyone = new ArrayList<>();
-                    for(PeerMember existingMember: peer.members) everyone.add(existingMember);
+                    synchronized(peer.members) {
+                        for(PeerMember existingMember: peer.members) everyone.add(existingMember);
+                    }
                     everyone.add(peer.me);
                     out.writeObject(everyone);
                     out.flush();
