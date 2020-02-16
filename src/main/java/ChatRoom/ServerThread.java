@@ -2,13 +2,10 @@ package ChatRoom;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.swing.JOptionPane;
 
 /**
  * Server component for a peer.
@@ -17,22 +14,21 @@ import javax.swing.JOptionPane;
  *
  * @author Abdullah
  */
-public class PeerServerThread extends Thread {
+public class ServerThread extends Thread {
     
-    private final PeerClient peer;
+    private final Client peer;
     private final ServerSocket server;
     
     /**
      * @param c Client this server should be bound to
      * @throws ChatRoom.PortNotAvailbleException
      */
-    public PeerServerThread(PeerClient c) throws PortNotAvailbleException {
+    public ServerThread(Client c) throws PortNotAvailbleException {
         peer = c;
         try {
             // Create a server
             server = new ServerSocket(peer.me.getPort());
             peer.postMessage("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort());
-            start(); // Start server
         } catch (IOException e) {
             throw new PortNotAvailbleException("Port not available, try another port.");
         }
@@ -59,10 +55,10 @@ public class PeerServerThread extends Thread {
  */
 class Handler implements Runnable {
     
-    private final PeerClient peer;
+    private final Client peer;
     private final Socket conn;
     
-    public Handler(PeerClient c, Socket conn) {
+    public Handler(Client c, Socket conn) {
         this.peer = c;
         this.conn = conn;
     }
@@ -78,12 +74,9 @@ class Handler implements Runnable {
             // Receive object from other peer
             ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
             Object obj = in.readObject();
-            
-            // Get class name
-            String objClass = obj.getClass().getName();
 
             // If string, it could be a normal message or command.
-            if(objClass.equals("java.lang.String")) {
+            if(obj instanceof String) {
                 String message = (String)obj;
 
                 synchronized(peer.members) {
@@ -91,7 +84,7 @@ class Handler implements Runnable {
                         // New member joined the network, add them to the list
                         String[] newMemberArr = message.substring(10).split(":"); // FORMAT => username:id:address:port
                         peer.postMessage("New member \"" + newMemberArr[0] + "\" joined!");
-                        peer.members.add(new PeerMember(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
+                        peer.members.add(new Member(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
                         peer.updateMembersList();
                     } else if(message.startsWith("removeMember")) {
                         // Someone left the group, remove them from the list
@@ -101,7 +94,7 @@ class Handler implements Runnable {
                     } else if(message.startsWith("newCoordinator")) {
                         // Coordinator changed, update the list.
                         int newCoordinatorID = Integer.parseInt(message.split(":")[1]);
-                        for(PeerMember m: peer.members) {
+                        for(Member m: peer.members) {
                             if(m.getID() == newCoordinatorID) {
                                 m.setCoordinator();
                                 peer.postMessage(m.getUsername() + " is the new coordinator!");
@@ -114,27 +107,10 @@ class Handler implements Runnable {
                     }
                 }
             }
-            // If PeerMember, someone is trying to join the network
-            else if(objClass.equals("ChatRoom.PeerMember")) {
-                PeerMember m = (PeerMember)obj;
-                int ans = JOptionPane.showConfirmDialog(null, "> Connection request from " + m.getUsername() + ". Add to list?");
-                if(ans == JOptionPane.YES_OPTION) {
-                    ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-
-                    // Send list of all members in the network
-                    ArrayList<PeerMember> everyone = new ArrayList<>();
-                    synchronized(peer.members) {
-                        for(PeerMember existingMember: peer.members) everyone.add(existingMember);
-                    }
-                    everyone.add(peer.me);
-                    out.writeObject(everyone);
-                    out.flush();
-                    
-                    // Notify everyone of this new member
-                    peer.globalAddMember(m);
-                } else {
-                    peer.postMessage("> Ignoring...");
-                }
+            // If Member, someone is trying to join the network
+            else if(obj instanceof Member){
+                Member m = (Member)obj;
+                peer.incomingRequest(m, conn);
             }
             conn.close();
         } catch (IOException e) {

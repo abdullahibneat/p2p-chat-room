@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 /**
  * Class responsible for creating a new peer.
@@ -20,11 +21,11 @@ import javax.swing.JLabel;
  *
  * @author Abdullah
  */
-public final class PeerClient {
+public final class Client {
     private MainGUI gui;
-    private PeerServerThread server; // Server
-    protected final ArrayList<PeerMember> members; // List of members
-    protected final PeerMember me; // This peer's details
+    private ServerThread server; // Server
+    protected final ArrayList<Member> members; // List of members
+    protected final Member me; // This peer's details
     protected boolean online = false; // Set to true when peer connected to netowrk
     private CoordinatorThread coordinatorThread = null;
     private boolean nextCoordinator = false; // Check if this peer is the next coordinator
@@ -40,7 +41,7 @@ public final class PeerClient {
      * @throws ChatRoom.PortNotAvailbleException
      * @throws ChatRoom.UnknownMemberException
      */
-    public PeerClient(PeerMember me, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException {
+    public Client(Member me, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException {
         this.me = me;
         gui = new MainGUI();
         
@@ -53,7 +54,8 @@ public final class PeerClient {
         gui.setVisible(true);
         
         // Start the server
-        server = new PeerServerThread(this);
+        server = new ServerThread(this);
+        server.start(); // Start server
         
         /**
          * CONNECT TO OTHER PEERS or CREATE A NEW NETWORK
@@ -63,7 +65,7 @@ public final class PeerClient {
          */
         
         // Need to make members ArrayList final, so create a temporary ArrayList
-        ArrayList<PeerMember> tempMembers = new ArrayList<>();
+        ArrayList<Member> tempMembers = new ArrayList<>();
 
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
@@ -92,7 +94,7 @@ public final class PeerClient {
      * @throws ChatRoom.UnknownMemberException
      * @throws java.lang.ClassNotFoundException
      */
-    private ArrayList<PeerMember> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException {
+    private ArrayList<Member> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException {
         try {
             postMessage("Sending request...");
             Socket conn = new Socket(address, port);
@@ -100,11 +102,11 @@ public final class PeerClient {
             out.writeObject(me);
             out.flush();
             ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
-            ArrayList<PeerMember> m = (ArrayList<PeerMember>) in.readObject();
+            ArrayList<Member> m = (ArrayList<Member>) in.readObject();
             conn.close();
             
             // Assign this peer's ID
-            for(PeerMember member: m) {
+            for(Member member: m) {
                 if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
             }            
             me.setID(++newestMemberID);
@@ -116,11 +118,39 @@ public final class PeerClient {
     }
     
     /**
+     * Method to handle incoming connection requests from new members trying to join the network.
+     * 
+     * @param newMember Member trying to join.
+     * @param conn Connection to the member.
+     */
+    protected synchronized void incomingRequest(Member newMember, Socket conn) {
+        try {
+            int ans = JOptionPane.showConfirmDialog(null, "> Connection request from " + newMember.getUsername() + ". Add to list?");
+            if(ans == JOptionPane.YES_OPTION) {
+                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+
+                // Send list of all members in the network
+                ArrayList<Member> everyone = new ArrayList<>();
+                for(Member existingMember: members) everyone.add(existingMember);
+                everyone.add(me);
+                out.writeObject(everyone);
+                out.flush();
+
+                // Notify everyone of this new member
+                globalAddMember(newMember);
+            } else {
+                postMessage("> Ignoring...");
+            }
+            conn.close();
+        } catch(IOException e) {}
+    }
+    
+    /**
      * Method to inform existing members about a new member.
      * 
      * @param newMember Details of the new member
      */
-    protected synchronized void globalAddMember(PeerMember newMember) {
+    protected synchronized void globalAddMember(Member newMember) {
         newMember.setID(++newestMemberID); // Assign new ID to the member
         sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         members.add(newMember);
@@ -163,7 +193,7 @@ public final class PeerClient {
      */
     private synchronized void sendMessage(String string, boolean isCommand) {
         if(!isCommand) postMessage(string); // Normal message, show it to the sender
-        for(PeerMember member: members) {
+        for(Member member: members) {
             try {
                 Socket conn = new Socket(member.getAddress(), member.getPort());
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
@@ -196,7 +226,7 @@ public final class PeerClient {
         oldestMemberID = me.getID();
         newestMemberID = me.getID();
         
-        for(PeerMember member: members) {
+        for(Member member: members) {
             if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
             else if(member.getID() < oldestMemberID && !member.isCoordinator()) oldestMemberID = member.getID(); // Find the lowest ID
             String level = member.isCoordinator()? "coordinator" : "member";

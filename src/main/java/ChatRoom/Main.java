@@ -12,10 +12,10 @@ public class Main {
         try {
             String myUsername = JOptionPane.showInputDialog("My username");
             int myPort = Integer.parseInt(JOptionPane.showInputDialog("My port"));
-            PeerMember m = new PeerMember(myUsername, myPort);
+            Member m = new Member(myUsername, myPort);
             String host = JOptionPane.showInputDialog("Other Member host");
             int port = host.isEmpty()? 0 : Integer.parseInt(JOptionPane.showInputDialog("Other member port")); // Show port dialog only if host is specified.
-            PeerClient c = new PeerClient(m, host, port);
+            Client c = new Client(m, host, port);
         } catch (InvalidUsernameException ex) {
             System.out.println("Invalid username.");
         } catch (NoInternetException ex) {

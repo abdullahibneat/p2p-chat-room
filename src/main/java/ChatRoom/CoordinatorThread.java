@@ -13,9 +13,9 @@ import java.net.Socket;
  */
 public class CoordinatorThread extends Thread {
     
-    private final PeerClient peer;
+    private final Client peer;
     
-    public CoordinatorThread(PeerClient client) {
+    public CoordinatorThread(Client client) {
         this.peer = client;
         this.start();
     }
@@ -38,7 +38,7 @@ public class CoordinatorThread extends Thread {
                 try {
                     // Try to connect to each member to make sure they're online
                     synchronized(peer.members) {
-                        for(PeerMember m: peer.members) {
+                        for(Member m: peer.members) {
                             currentMemberID = m.getID();
                             currentMemberUsername = m.getUsername();
                             Socket s = new Socket(m.getAddress(), m.getPort());
@@ -53,7 +53,7 @@ public class CoordinatorThread extends Thread {
                 }
             } else {
                 // I'm the next coordinator
-                PeerMember currentCoordinator = null;
+                Member currentCoordinator = null;
                 
                 // When this peer is the second member, it might happen that
                 // the 1st member (i.e. coordinator) is still sending the list
@@ -62,7 +62,7 @@ public class CoordinatorThread extends Thread {
                 
                 // Find current coordinator
                 synchronized(peer.members) {
-                    for(PeerMember m: peer.members) {
+                    for(Member m: peer.members) {
                         if(m.isCoordinator()) {
                             currentCoordinator = m;
                             break;

@@ -10,7 +10,7 @@ import java.net.Socket;
  *
  * @author Abdullah
  */
-public class PeerMember implements Serializable {
+public class Member implements Serializable {
     private int id = -1;
     private String userName;
     private final String address;
@@ -25,7 +25,7 @@ public class PeerMember implements Serializable {
      * @throws ChatRoom.InvalidUsernameException
      * @throws ChatRoom.NoInternetException
      */
-    public PeerMember(String userName, int port) throws InvalidUsernameException, NoInternetException {
+    public Member(String userName, int port) throws InvalidUsernameException, NoInternetException {
         
         try {
             // Check username format
@@ -52,7 +52,7 @@ public class PeerMember implements Serializable {
      * @param address Host address
      * @param port Port
      */
-    public PeerMember(String userName, int id, String address, int port) {
+    public Member(String userName, int id, String address, int port) {
         this.userName = userName;
         this.id = id;
         this.address = address;
