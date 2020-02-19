@@ -1,6 +1,7 @@
 package ChatRoom;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.Socket;
 
 
@@ -17,7 +18,6 @@ public class CoordinatorThread extends Thread {
     
     public CoordinatorThread(Client client) {
         this.peer = client;
-        this.start();
     }
     
     /**
@@ -37,19 +37,21 @@ public class CoordinatorThread extends Thread {
             if(peer.me.isCoordinator()) {
                 try {
                     // Try to connect to each member to make sure they're online
-                    synchronized(peer.members) {
-                        for(Member m: peer.members) {
-                            currentMemberID = m.getID();
-                            currentMemberUsername = m.getUsername();
-                            Socket s = new Socket(m.getAddress(), m.getPort());
-                            s.close();
-                        }
+                    for(Member m: peer.getMembers()) {
+                        currentMemberID = m.getID();
+                        currentMemberUsername = m.getUsername();
+                        Socket s = new Socket(m.getAddress(), m.getPort());
+                        s.close();
                     }
-                    sleep(1000); // Check every second.
-                } catch(IOException e) {
+                    sleep(1000);
+                } catch(BindException e) {
+                    // java.net.BindException: Address already in use: connect
+                    // Can be ignored
+                } catch (IOException e) {
+                    System.out.println(e + " - removing member");
                     peer.globalRemoveMember(currentMemberID, currentMemberUsername);
-                } catch (InterruptedException e) {
-                    // Peer disconnected
+                } catch(InterruptedException e) {
+                    // Problem while sleeping
                 }
             } else {
                 // I'm the next coordinator
@@ -61,12 +63,10 @@ public class CoordinatorThread extends Thread {
                 while(!peer.online) {}
                 
                 // Find current coordinator
-                synchronized(peer.members) {
-                    for(Member m: peer.members) {
-                        if(m.isCoordinator()) {
-                            currentCoordinator = m;
-                            break;
-                        }
+                for(Member m: peer.getMembers()) {
+                    if(m.isCoordinator()) {
+                        currentCoordinator = m;
+                        break;
                     }
                 }
                 
@@ -75,7 +75,9 @@ public class CoordinatorThread extends Thread {
                     try {
                         Socket conn = new Socket(currentCoordinator.getAddress(), currentCoordinator.getPort());
                         conn.close();
-                        sleep(1000); // Check every second.
+                    } catch(BindException e) {
+                        // java.net.BindException: Address already in use: connect
+                        // Can be ignored
                     } catch(IOException e) {
                         // Coordinator left, take his role
                         peer.me.setCoordinator();
@@ -83,8 +85,6 @@ public class CoordinatorThread extends Thread {
                         peer.sendMessage(currentCoordinator.getUsername() + " left, I'm the coordinator now!");
                         peer.sendCommand("newCoordinator:" + peer.me.getID());
                         break;
-                    } catch(InterruptedException e) {
-                        // Peer disconnected
                     }
                 }
             }
