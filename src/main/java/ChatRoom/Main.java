@@ -17,13 +17,17 @@ public class Main {
             int port = host.isEmpty()? 0 : Integer.parseInt(JOptionPane.showInputDialog("Other member port")); // Show port dialog only if host is specified.
             Client c = new Client(m, host, port);
         } catch (InvalidUsernameException ex) {
-            System.out.println("Invalid username.");
+            JOptionPane.showMessageDialog(null, "Invalid username." + ex);
+            System.exit(0);
         } catch (NoInternetException ex) {
-            System.out.println("No internet.");
+            JOptionPane.showMessageDialog(null, "No internet.");
+            System.exit(0);
         } catch (PortNotAvailbleException ex) {
-            System.out.println("Port not available.");
+            JOptionPane.showMessageDialog(null, "Port not available.");
+            System.exit(0);
         } catch (UnknownMemberException ex) {
-            System.out.println("Could not connect to member, or request was denied.");
+            JOptionPane.showMessageDialog(null, "Could not connect to member, or request was denied.");
+            System.exit(0);
         }
     }
 }

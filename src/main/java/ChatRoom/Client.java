@@ -115,7 +115,7 @@ public final class Client {
      * @throws ChatRoom.UnknownMemberException
      * @throws java.lang.ClassNotFoundException
      */
-    private List<Member> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException {
+    private List<Member> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException, InvalidUsernameException {
         System.out.println("sendRequest(" + address + ", " + port + ")");
         try {
             postMessage("Sending request...");
@@ -127,10 +127,13 @@ public final class Client {
             List<Member> m = (List<Member>) in.readObject();
             conn.close();
             
+            // Check if username is unique
+            if(m.isEmpty()) throw new InvalidUsernameException("Username must be unique.");
+            
             // Assign this member's ID
             for(Member member: m) {
                 if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
-            }            
+            }
             me.setID(++newestMemberID);
             
             return m;
@@ -151,11 +154,26 @@ public final class Client {
             int ans = JOptionPane.showConfirmDialog(null, "> Connection request from " + newMember.getUsername() + ". Add to list?");
             if(ans == JOptionPane.YES_OPTION) {
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                
+                // New user's username MUST BE UNIQUE
+                boolean usernameUnique = true;
 
                 // Send list of all members in the network
                 ArrayList<Member> everyone = new ArrayList<>();
-                for(Member existingMember: getMembers()) everyone.add(existingMember);
+                for(Member existingMember: getMembers()) {
+                    // Check is username is already in use
+                    if(existingMember.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
+                        usernameUnique = false;
+                        break;
+                    }
+                    everyone.add(existingMember);
+                }
                 everyone.add(me);
+                if(me.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
+                    usernameUnique = false;
+                    everyone.clear();
+                }
+                
                 out.writeObject(everyone);
                 out.flush();
                 conn.close();
