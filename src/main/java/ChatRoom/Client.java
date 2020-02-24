@@ -5,7 +5,6 @@ import ChatRoomGUI.MemberGUI;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.BindException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +50,7 @@ public final class Client {
         
         // Add action listener to the "Send" button
         gui.messageSendButton.addActionListener(e -> {
+            System.out.println("Send button pressed");
             sendMessage(gui.messageInput.getText());
             gui.messageInput.setText("");
         });
@@ -92,7 +92,10 @@ public final class Client {
         updateMembersList();
     }
     
-    protected synchronized List<Member> getMembers() { return members; }
+    protected synchronized List<Member> getMembers() {
+        System.out.println("getMembers()");
+        return members;
+    }
     
     /**
      * Method to send a request to be added to an existing network.
@@ -104,6 +107,7 @@ public final class Client {
      * @throws java.lang.ClassNotFoundException
      */
     private List<Member> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException {
+        System.out.println("sendRequest(" + address + ", " + port + ")");
         try {
             postMessage("Sending request...");
             Socket conn = new Socket(address, port);
@@ -133,6 +137,7 @@ public final class Client {
      * @param conn Connection to the member.
      */
     protected void incomingRequest(Member newMember, Socket conn) {
+        System.out.println("incomingRequest(" + newMember + ", " + conn + ")");
         try {
             int ans = JOptionPane.showConfirmDialog(null, "> Connection request from " + newMember.getUsername() + ". Add to list?");
             if(ans == JOptionPane.YES_OPTION) {
@@ -144,13 +149,13 @@ public final class Client {
                 everyone.add(me);
                 out.writeObject(everyone);
                 out.flush();
+                conn.close();
 
                 // Notify everyone of this new member
                 globalAddMember(newMember);
             } else {
                 postMessage("> Ignoring...");
             }
-            conn.close();
         } catch(IOException e) {}
     }
     
@@ -160,6 +165,7 @@ public final class Client {
      * @param newMember Details of the new member
      */
     protected void globalAddMember(Member newMember) {
+        System.out.println("globalAddMember(" + newMember + ")");
         newMember.setID(++newestMemberID); // Assign new ID to the member
         sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         getMembers().add(newMember);
@@ -174,6 +180,7 @@ public final class Client {
      * @param userName Username of member who left
      */
     protected void globalRemoveMember(int id, String userName) {
+        System.out.println("globalRemoveMember(" + id + ", " + userName + ")");
         getMembers().removeIf(m -> m.getID() == id); // Remove member
         updateMembersList();
         sendCommand("removeMember:"+id);
@@ -185,14 +192,21 @@ public final class Client {
      * 
      * @param message
      */
-    protected void sendMessage(String message) { sendMessage(message, false); }
+    protected void sendMessage(String message) {
+        System.out.println("sendMessage(" + message + ")");
+        postMessage(message);
+        sendMessage(message, false);
+    }
     
     /**
      * Send a command to all members in the network.
      * 
      * @param command
      */
-    protected void sendCommand(String command) { sendMessage(command, true); }
+    protected void sendCommand(String command) {
+        System.out.println("sendCommand(" + command + ")");
+        sendMessage(command, true);
+    }
     
     /**
      * Send a String to all peers in the list.
@@ -201,24 +215,7 @@ public final class Client {
      * @param isCommand Set to true if this is command
      */
     private void sendMessage(String string, boolean isCommand) {
-        if(!isCommand) postMessage(string); // Normal message, show it to the sender
-        for(Member member: getMembers()) {
-            try {
-                Socket conn = new Socket(member.getAddress(), member.getPort());
-                conn.setSoTimeout(1);
-                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject(isCommand? string : me.getUsername() + ": " + string);
-                out.flush();
-                conn.close();
-            } catch(BindException e) {
-                // java.net.BindException: Address already in use: connect
-                // Can be ignored                    
-                System.out.println("BindException??? " + e);
-            } catch (IOException e) {
-                System.out.println("Asking coordinator to remove");
-                unreachableMember(member);
-            }
-        }
+        MessagingThread msg = new MessagingThread(this, string, isCommand);
     }
     
     /**
@@ -227,6 +224,7 @@ public final class Client {
      * @param message Message to be added to the chat
      */
     protected void postMessage(String message) {
+        System.out.println("postMessage(" + message + ")");
         gui.chatPanel.add(new JLabel(message));
         gui.revalidate();
     }
@@ -234,7 +232,8 @@ public final class Client {
     /**
      * Method to update the side panel showing the list of members.
      */
-    protected void updateMembersList() {
+    protected synchronized void updateMembersList() {
+        System.out.println("updateMembersList()");
         gui.membersList.removeAll();
         
         // Reset lowest and highest ID
@@ -262,9 +261,12 @@ public final class Client {
         gui.membersList.repaint();
     }
     
-    protected synchronized List<Member> getUnreachableMembers() { return unreachableMembers; }
+    protected synchronized List<Member> getUnreachableMembers() {
+        return unreachableMembers;
+    }
     
-    protected void unreachableMember(Member m) {
+    protected synchronized void unreachableMember(Member m) {
+        System.out.println("unreachableMember(" + m + ")");
         if(me.isCoordinator()) unreachableMembers.add(m);
         else {
             Member coordinator = members.get(0);

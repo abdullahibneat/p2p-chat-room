@@ -80,39 +80,17 @@ class Handler implements Runnable {
             if(obj instanceof String) {
                 String message = (String)obj;
 
-                if(message.startsWith("newMember")) {
-                    // New member joined the network, add them to the list
-                    String[] newMemberArr = message.substring(10).split(":"); // FORMAT => username:id:address:port
-                    peer.postMessage("New member \"" + newMemberArr[0] + "\" joined!");
-                    peer.getMembers().add(new Member(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
-                } else if(message.startsWith("removeMember")) {
-                    // Someone left the group, remove them from the list
-                    int removeID = Integer.parseInt(message.split(":")[1]);
-                    peer.getMembers().removeIf(m -> m.getID() == removeID); // Find and remove member
-                } else if(message.startsWith("newCoordinator")) {
-                    // Coordinator changed, update the list.
-                    int newCoordinatorID = Integer.parseInt(message.split(":")[1]);
-                    for(Member m: peer.getMembers()) {
-                        if(m.getID() == newCoordinatorID) {
-                            m.setCoordinator();
-                            peer.postMessage(m.getUsername() + " is the new coordinator!");
-                            break;
-                        }
-                    }
-                } else if(message.startsWith("unreachable")) {
-                    int id = Integer.parseInt(message.split(":")[1]);
-                    for(Member m: peer.getMembers()) if(m.getID() == id) { peer.getUnreachableMembers().add(m); break; }
-                } else {
-                    // Normal chat message
-                    peer.postMessage(message);
-                }
+                if(message.startsWith("newMember")) newMember(message); // New member joined the network, add them to the list
+                else if(message.startsWith("removeMember")) removeMember(Integer.parseInt(message.split(":")[1])); // Someone left the group, remove them from the list
+                else if(message.startsWith("newCoordinator")) newCoordinator(Integer.parseInt(message.split(":")[1])); // Coordinator changed, update the list.
+                else if(message.startsWith("unreachable")) unreachableMember(Integer.parseInt(message.split(":")[1]));
+                else peer.postMessage(message); // Normal chat message
+                
                 peer.updateMembersList();
             }
             // If Member, someone is trying to join the network
-            else if(obj instanceof Member){
-                Member m = (Member)obj;
-                peer.incomingRequest(m, conn);
-            }
+            else if(obj instanceof Member) peer.incomingRequest((Member)obj, conn);
+            
             conn.close();
         } catch(EOFException e) {
             // Someone is pinging, no file received.
@@ -121,5 +99,37 @@ class Handler implements Runnable {
         } catch (ClassNotFoundException e) {
             System.out.println("!ClassNotFound");
         }
+    }
+    
+    private void newMember(String newMemberString) {
+        String[] newMemberArr = newMemberString.substring(10).split(":"); // FORMAT => username:id:address:port
+        String userName = newMemberArr[0];
+        int id = Integer.parseInt(newMemberArr[1]);
+        String address = newMemberArr[2];
+        int port = Integer.parseInt(newMemberArr[3]);
+        // Because of multiple threads, it's possible that when a member joins the chat, the
+        // same member receives a request to add himself to the chat.
+        if(id != peer.me.getID()) {
+            peer.postMessage("New member \"" + newMemberArr[0] + "\" joined!");
+            peer.getMembers().add(new Member(userName, id, address, port));
+        }
+    }
+    
+    private void removeMember(int id) {
+        peer.getMembers().removeIf(m -> m.getID() == id); // Find and remove member
+    }
+    
+    private void newCoordinator(int id) {
+        for(Member m: peer.getMembers()) {
+            if(m.getID() == id) {
+                m.setCoordinator();
+                peer.postMessage(m.getUsername() + " is the new coordinator!");
+                break;
+            }
+        }
+    }
+    
+    private void unreachableMember(int id) {
+        for(Member m: peer.getMembers()) if(m.getID() == id) { peer.getUnreachableMembers().add(m); break; }
     }
 }
