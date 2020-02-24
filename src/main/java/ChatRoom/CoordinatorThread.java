@@ -15,10 +15,10 @@ import java.util.Iterator;
  */
 public class CoordinatorThread extends Thread {
     
-    private final Client peer;
+    private final Client client;
     
     public CoordinatorThread(Client client) {
-        this.peer = client;
+        this.client = client;
     }
     
     /**
@@ -30,16 +30,16 @@ public class CoordinatorThread extends Thread {
         String currentMemberUsername = "";
         System.out.println("Coordinator thread started");
         while(true) {
-            // Two options. This peer is either:
+            // Two options. This member is either:
             //      - Coordinator
             //      - Next coordinator
             
             // If this is the coordinator
-            if(peer.me.isCoordinator()) {
+            if(client.me.isCoordinator()) {
                 while(true) {
                     try {
                         // Try to connect to each unreachable member to make sure they're online
-                        Iterator<Member> itr = peer.getUnreachableMembers().iterator();
+                        Iterator<Member> itr = client.getUnreachableMembers().iterator();
                         while(itr.hasNext()) {
                             Member m = itr.next();
                             itr.remove();
@@ -51,17 +51,17 @@ public class CoordinatorThread extends Thread {
                         }
                     } catch (IOException e) {
                         System.out.println(e + " - removing member");
-                        peer.globalRemoveMember(currentMemberID, currentMemberUsername);
+                        client.globalRemoveMember(currentMemberID, currentMemberUsername);
                     }
                 }
             } else {
                 // I'm the next coordinator
-                Member currentCoordinator = peer.getMembers().get(0);
+                Member currentCoordinator = client.getMembers().get(0);
                 
-                // When this peer is the second member, it might happen that
+                // When this member is the second member, it might happen that
                 // the 1st member (i.e. coordinator) is still sending the list
                 // of members. Wait until member received the full list.
-                while(!peer.online) {}
+                while(!client.online) {}
                 
                 // Continuously check if coordinator is online
                 while(true) {
@@ -73,10 +73,10 @@ public class CoordinatorThread extends Thread {
                         // Can be ignored
                     } catch(IOException e) {
                         // Coordinator left, take his role
-                        peer.me.setCoordinator();
-                        peer.globalRemoveMember(currentCoordinator.getID(), currentCoordinator.getUsername());
-                        peer.sendMessage(currentCoordinator.getUsername() + " left, I'm the coordinator now!");
-                        peer.sendCommand("newCoordinator:" + peer.me.getID());
+                        client.me.setCoordinator();
+                        client.globalRemoveMember(currentCoordinator.getID(), currentCoordinator.getUsername());
+                        client.sendMessage(currentCoordinator.getUsername() + " left, I'm the coordinator now!");
+                        client.sendCommand("newCoordinator:" + client.me.getID());
                         break;
                     } finally {
                         try {

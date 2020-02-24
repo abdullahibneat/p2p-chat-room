@@ -13,27 +13,29 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 /**
- * Class responsible for creating a new peer.
+ * Class responsible for creating a new client for a member.
  * 
- * A peer has two components: a server and a client.
+ * A member has two components: a server and a client.
  * The server is launched in a separate thread, and its job is to listen
- * for incoming messages from other peers.
- * The client sends messages to other peers. This is built in into this
- * class.
+ * for incoming messages from other members.
+ * The client sends messages to other members.
  *
  * @author Abdullah
  */
 public final class Client {
-    private MainGUI gui;
-    private ServerThread server; // Server
+    
+    protected final Member me; // This member's details
+    protected boolean online = false; // Set to true when member connected to netowrk
+    
+    private final MainGUI gui;
+    private final ServerThread server; // Server
     private final List<Member> members; // List of members
     private final List<Member> unreachableMembers = Collections.synchronizedList(new ArrayList<>());
-    protected final Member me; // This peer's details
-    protected boolean online = false; // Set to true when peer connected to netowrk
     private CoordinatorThread coordinatorThread = null;
-    private boolean nextCoordinator = false; // Check if this peer is the next coordinator
+    private boolean nextCoordinator = false; // Check if this member is the next coordinator
     private int newestMemberID = -1;
     private int oldestMemberID = -1; // Oldest member that is NOT a coordinator (i.e. next coordinator)
+    
     
     /**
      * Creates a single client.
@@ -43,6 +45,8 @@ public final class Client {
      * @param existingMemberPort Port number of the existing member
      * @throws ChatRoom.PortNotAvailbleException
      * @throws ChatRoom.UnknownMemberException
+     * @throws ChatRoom.InvalidUsernameException
+     * @throws ChatRoom.NoInternetException
      */
     public Client(Member me, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException, NoInternetException {
         this.me = me;
@@ -62,7 +66,7 @@ public final class Client {
         server.start(); // Start server
         
         /**
-         * CONNECT TO OTHER PEERS or CREATE A NEW NETWORK
+         * CONNECT TO OTHER MEMBERS or CREATE A NEW NETWORK
          * 
          * The user must either enter a valid address:port combination of
          * an existing member, or leave the field empty to create a new network.
@@ -92,6 +96,11 @@ public final class Client {
         updateMembersList();
     }
     
+    /**
+     * Method to retrieve the full list of members.
+     * 
+     * @return List of members.
+     */
     protected synchronized List<Member> getMembers() {
         System.out.println("getMembers()");
         return members;
@@ -118,7 +127,7 @@ public final class Client {
             List<Member> m = (List<Member>) in.readObject();
             conn.close();
             
-            // Assign this peer's ID
+            // Assign this member's ID
             for(Member member: m) {
                 if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
             }            
@@ -209,13 +218,13 @@ public final class Client {
     }
     
     /**
-     * Send a String to all peers in the list.
+     * Send a String to all members in the list.
      * 
      * @param string Message to be sent
      * @param isCommand Set to true if this is command
      */
     private void sendMessage(String string, boolean isCommand) {
-        MessagingThread msg = new MessagingThread(this, string, isCommand);
+        new MessagingThread(this, string, isCommand);
     }
     
     /**
@@ -248,7 +257,7 @@ public final class Client {
             gui.membersList.add(m);
         }
         
-        // Check if this peer is the next coordinator
+        // Check if this member is the next coordinator
         if(me.getID() == oldestMemberID && !me.isCoordinator() && !nextCoordinator) {
             coordinatorThread = new CoordinatorThread(this);
             coordinatorThread.start();
@@ -261,10 +270,20 @@ public final class Client {
         gui.membersList.repaint();
     }
     
+    /**
+     * Method to get the list of all members this client is having trouble to connect to.
+     * 
+     * @return List of unreachable members
+     */
     protected synchronized List<Member> getUnreachableMembers() {
         return unreachableMembers;
     }
     
+    /**
+     * Method to handle a member this client is having trouble connecting to.
+     * 
+     * @param m Member having issues to connect with.
+     */
     protected synchronized void unreachableMember(Member m) {
         System.out.println("unreachableMember(" + m + ")");
         if(me.isCoordinator()) unreachableMembers.add(m);
@@ -275,7 +294,7 @@ public final class Client {
                 out.writeObject("unreachable:" + m.getID());
                 out.flush();
             } catch (IOException e) {
-                System.out.println("error " + e);
+                System.out.println("error connecting to the coordinator: " + e);
             }
         }
     }

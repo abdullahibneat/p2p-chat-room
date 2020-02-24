@@ -6,7 +6,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
- * Class to store details of each peer.
+ * Class to store details of each member.
  *
  * @author Abdullah
  */
@@ -18,7 +18,7 @@ public class Member implements Serializable {
     private boolean coordinator = false;
     
     /**
-     * Initialise a peer knowing their username and port, and figure out the address.
+     * Initialise a member knowing their username and port, and figure out the address.
      * 
      * @param userName Username
      * @param port Port
@@ -35,7 +35,7 @@ public class Member implements Serializable {
             
             this.port = port;
             
-            // Get this peer's host address
+            // Get this member's host address
             Socket s = new Socket();
             s.connect(new InetSocketAddress("google.com", 80));
             this.address = s.getLocalAddress().toString().substring(1); // Substring to remove the "/" from the front
@@ -45,7 +45,7 @@ public class Member implements Serializable {
     }
     
     /**
-     * Initialise a peer knowing their username, address and port.
+     * Initialise a member knowing their username, address and port.
      * 
      * @param userName Username
      * @param id Unique ID
@@ -119,6 +119,6 @@ public class Member implements Serializable {
      */
     @Override
     public String toString() {
-        return "PeerMember{id: " + id + ", username: " + userName + ", address: " + address + ", port: " + port + ", isCoordinator: " + coordinator + "}";
+        return "Member{id: " + id + ", username: " + userName + ", address: " + address + ", port: " + port + ", isCoordinator: " + coordinator + "}";
     }
 }

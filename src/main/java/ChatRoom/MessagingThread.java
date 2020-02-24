@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ChatRoom;
 
 import java.io.IOException;
@@ -10,14 +5,19 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
+ * Thread to handle the sending of messages for a client.
+ * 
+ * A separate thread was necessary to make the application feel responsive. Previously, when a member
+ * tried to send a message to everyone, but some of the other members already disconnected, there
+ * the application would hang once the "send" button was pressed, due to the Connection Timeout of sockets.
  *
- * @author iAbdu
+ * @author Abdullah
  */
 public class MessagingThread extends Thread {
     
-    Client c;
-    String message;
-    boolean isCommand;
+    private final Client c;
+    private final String message;
+    private final boolean isCommand;
     
     public MessagingThread(Client c, String message, boolean isCommand) {
         this.c = c;
