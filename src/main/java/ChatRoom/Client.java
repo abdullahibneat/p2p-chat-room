@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.BindException;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +28,7 @@ public final class Client {
     private MainGUI gui;
     private ServerThread server; // Server
     private final List<Member> members; // List of members
+    private final List<Member> unreachableMembers = Collections.synchronizedList(new ArrayList<>());
     protected final Member me; // This peer's details
     protected boolean online = false; // Set to true when peer connected to netowrk
     private CoordinatorThread coordinatorThread = null;
@@ -203,24 +203,20 @@ public final class Client {
     private void sendMessage(String string, boolean isCommand) {
         if(!isCommand) postMessage(string); // Normal message, show it to the sender
         for(Member member: getMembers()) {
-            while(true) {
-                try {
-                    Socket conn = new Socket(member.getAddress(), member.getPort());
-                    conn.setSoTimeout(1);
-                    ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                    out.writeObject(isCommand? string : me.getUsername() + ": " + string);
-                    out.flush();
-                    conn.close();
-                    break;
-                } catch(BindException e) {
-                    // java.net.BindException: Address already in use: connect
-                    // Can be ignored                    
-                } catch (ConnectException e) {
-                    System.out.println("Could not send message to member " + member.getUsername() + ": " + e);
-                    break;
-                } catch (IOException e) {
-                    System.out.println("Error: " + e);
-                }
+            try {
+                Socket conn = new Socket(member.getAddress(), member.getPort());
+                conn.setSoTimeout(1);
+                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                out.writeObject(isCommand? string : me.getUsername() + ": " + string);
+                out.flush();
+                conn.close();
+            } catch(BindException e) {
+                // java.net.BindException: Address already in use: connect
+                // Can be ignored                    
+                System.out.println("BindException??? " + e);
+            } catch (IOException e) {
+                System.out.println("Asking coordinator to remove");
+                unreachableMember(member);
             }
         }
     }
@@ -264,5 +260,21 @@ public final class Client {
         
         gui.membersList.revalidate();
         gui.membersList.repaint();
+    }
+    
+    protected synchronized List<Member> getUnreachableMembers() { return unreachableMembers; }
+    
+    protected void unreachableMember(Member m) {
+        if(me.isCoordinator()) unreachableMembers.add(m);
+        else {
+            Member coordinator = members.get(0);
+            try (Socket conn = new Socket(coordinator.getAddress(), coordinator.getPort())) {
+                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
+                out.writeObject("unreachable:" + m.getID());
+                out.flush();
+            } catch (IOException e) {
+                System.out.println("error " + e);
+            }
+        }
     }
 }

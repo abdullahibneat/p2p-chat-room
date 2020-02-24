@@ -3,6 +3,7 @@ package ChatRoom;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.Socket;
+import java.util.Iterator;
 
 
 /**
@@ -35,40 +36,32 @@ public class CoordinatorThread extends Thread {
             
             // If this is the coordinator
             if(peer.me.isCoordinator()) {
-                try {
-                    // Try to connect to each member to make sure they're online
-                    for(Member m: peer.getMembers()) {
-                        currentMemberID = m.getID();
-                        currentMemberUsername = m.getUsername();
-                        Socket s = new Socket(m.getAddress(), m.getPort());
-                        s.close();
+                while(true) {
+                    try {
+                        // Try to connect to each unreachable member to make sure they're online
+                        Iterator<Member> itr = peer.getUnreachableMembers().iterator();
+                        while(itr.hasNext()) {
+                            Member m = itr.next();
+                            itr.remove();
+                            currentMemberID = m.getID();
+                            currentMemberUsername = m.getUsername();
+                            System.out.println(currentMemberID + " might be unreachable, testing from coordinatorThread");
+                            Socket s = new Socket(m.getAddress(), m.getPort());
+                            s.close();
+                        }
+                    } catch (IOException e) {
+                        System.out.println(e + " - removing member");
+                        peer.globalRemoveMember(currentMemberID, currentMemberUsername);
                     }
-                    sleep(1000);
-                } catch(BindException e) {
-                    // java.net.BindException: Address already in use: connect
-                    // Can be ignored
-                } catch (IOException e) {
-                    System.out.println(e + " - removing member");
-                    peer.globalRemoveMember(currentMemberID, currentMemberUsername);
-                } catch(InterruptedException e) {
-                    // Problem while sleeping
                 }
             } else {
                 // I'm the next coordinator
-                Member currentCoordinator = null;
+                Member currentCoordinator = peer.getMembers().get(0);
                 
                 // When this peer is the second member, it might happen that
                 // the 1st member (i.e. coordinator) is still sending the list
                 // of members. Wait until member received the full list.
                 while(!peer.online) {}
-                
-                // Find current coordinator
-                for(Member m: peer.getMembers()) {
-                    if(m.isCoordinator()) {
-                        currentCoordinator = m;
-                        break;
-                    }
-                }
                 
                 // Continuously check if coordinator is online
                 while(true) {
@@ -85,6 +78,12 @@ public class CoordinatorThread extends Thread {
                         peer.sendMessage(currentCoordinator.getUsername() + " left, I'm the coordinator now!");
                         peer.sendCommand("newCoordinator:" + peer.me.getID());
                         break;
+                    } finally {
+                        try {
+                            sleep(1000);
+                        } catch(InterruptedException e) {
+                            System.out.println("Error sleeping");
+                        }
                     }
                 }
             }

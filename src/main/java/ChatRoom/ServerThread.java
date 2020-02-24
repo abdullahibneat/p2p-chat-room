@@ -85,12 +85,10 @@ class Handler implements Runnable {
                     String[] newMemberArr = message.substring(10).split(":"); // FORMAT => username:id:address:port
                     peer.postMessage("New member \"" + newMemberArr[0] + "\" joined!");
                     peer.getMembers().add(new Member(newMemberArr[0], Integer.parseInt(newMemberArr[1]), newMemberArr[2], Integer.parseInt(newMemberArr[3])));
-                    peer.updateMembersList();
                 } else if(message.startsWith("removeMember")) {
                     // Someone left the group, remove them from the list
                     int removeID = Integer.parseInt(message.split(":")[1]);
                     peer.getMembers().removeIf(m -> m.getID() == removeID); // Find and remove member
-                    peer.updateMembersList();
                 } else if(message.startsWith("newCoordinator")) {
                     // Coordinator changed, update the list.
                     int newCoordinatorID = Integer.parseInt(message.split(":")[1]);
@@ -101,10 +99,14 @@ class Handler implements Runnable {
                             break;
                         }
                     }
+                } else if(message.startsWith("unreachable")) {
+                    int id = Integer.parseInt(message.split(":")[1]);
+                    for(Member m: peer.getMembers()) if(m.getID() == id) { peer.getUnreachableMembers().add(m); break; }
                 } else {
                     // Normal chat message
                     peer.postMessage(message);
                 }
+                peer.updateMembersList();
             }
             // If Member, someone is trying to join the network
             else if(obj instanceof Member){
