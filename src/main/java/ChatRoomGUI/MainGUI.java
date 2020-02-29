@@ -27,9 +27,9 @@ import javax.swing.text.JTextComponent;
 public class MainGUI extends JFrame implements ClientGUI {
     
     private final JSplitPane sp = new JSplitPane();
-    private final JPanel leftPanel = new JPanel();
-    private final JPanel rightPanel = new JPanel();
-    private final JPanel chatPanel = new JPanel();
+    private final JPanel leftPanel = new JPanel(); // Panel to display all members
+    private final JPanel rightPanel = new JPanel(); // Panel with chat, message input and send button.
+    private final JPanel chatPanel = new JPanel(); // Chat messages are displayed here
     private final JButton sendButton = new JButton("Send");
     private final JTextArea messageInput = new JTextArea();
     
@@ -37,7 +37,7 @@ public class MainGUI extends JFrame implements ClientGUI {
     
     public MainGUI() {
         
-        // Placeholder text
+        // Placeholder text handling
         messageInput.setForeground(Color.gray);
         messageInput.setText(PLACEHOLDER_TEXT);
         messageInput.addFocusListener(new FocusListener() {
@@ -61,6 +61,9 @@ public class MainGUI extends JFrame implements ClientGUI {
         init();
     }
     
+    /**
+     * Initialise the user interface.
+     */
     private void init() {
         setTitle("Chat Room");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -77,16 +80,22 @@ public class MainGUI extends JFrame implements ClientGUI {
         setVisible(true);
     }
     
+    /**
+     * Initialise panel where member details can be seen.
+     */
     private JScrollPane initializeLeftPanel() {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        JScrollPane sp = new JScrollPane(leftPanel);
-        sp.setMinimumSize(new Dimension(200, 0)); // Same as initial divider location of the JSplitPane
-        return sp;
+        JScrollPane s = new JScrollPane(leftPanel);
+        s.setMinimumSize(new Dimension(200, 0)); // Same as initial divider location of the JSplitPane
+        return s;
     }
     
+    /**
+     * Initialise the right-hand side of the interface, with the chat on top and message input and send button at the bottom.
+     */
     private JPanel initializeRightPanel() {
         RelativeLayout rightPanelLayout = new RelativeLayout(RelativeLayout.Y_AXIS);
-        rightPanelLayout.setFill(true);
+        rightPanelLayout.setFill(true); // Fill components both horizontally AND vertically
         rightPanel.setLayout(rightPanelLayout);
         
         JPanel topRight = new JPanel(new BorderLayout()); // Use BorderLayout so that messages can cover entire width (by adding to North)
@@ -100,7 +109,7 @@ public class MainGUI extends JFrame implements ClientGUI {
         JPanel inputPanel = new JPanel(inputPanelLayout);
         
         messageInput.setLineWrap(true);
-        messageInput.setMargin(new Insets(5, 5, 5, 5));
+        messageInput.setMargin(new Insets(5, 5, 5, 5)); // Add a margin around the text area
         
         inputPanel.add(new JScrollPane(messageInput), 0.8f);
         inputPanel.add(sendButton, 0.2f);
@@ -110,19 +119,13 @@ public class MainGUI extends JFrame implements ClientGUI {
     }
 
     @Override
-    public AbstractButton getSendButton() {
-        return sendButton;
-    }
+    public AbstractButton getSendButton() { return sendButton; }
 
     @Override
-    public JTextComponent getMessageInput() {
-        return messageInput;
-    }
+    public JTextComponent getMessageInput() { return messageInput; }
     
     @Override
-    public String getPlaceholderText() {
-        return PLACEHOLDER_TEXT;
-    }
+    public String getPlaceholderText() { return PLACEHOLDER_TEXT; }
 
     @Override
     public void addMember(Member newMember) {
@@ -131,14 +134,10 @@ public class MainGUI extends JFrame implements ClientGUI {
     }
 
     @Override
-    public void clearMembersList() {
-        leftPanel.removeAll();
-    }
+    public void clearMembersList() { leftPanel.removeAll(); }
     
     @Override
-    public void revalidateMembersList() {
-        leftPanel.revalidate();
-    }
+    public void revalidateMembersList() { leftPanel.revalidate(); }
 
     @Override
     public void addMessage(String message, boolean myMessage) {

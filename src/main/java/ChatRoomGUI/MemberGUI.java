@@ -7,6 +7,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 /**
+ * A JPanel component to show details of members in the GUI.
  *
  * @author Abdullah
  */
