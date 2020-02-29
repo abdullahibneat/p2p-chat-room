@@ -41,7 +41,7 @@ public class MainGUI extends JFrame implements ClientGUI {
         
         // Configure JSplitPane
         sp.setOneTouchExpandable(true);
-        sp.setDividerLocation(250);
+        sp.setDividerLocation(200);
         sp.setLeftComponent(initializeLeftPanel());
         sp.setRightComponent(initializeRightPanel());
         
@@ -53,7 +53,7 @@ public class MainGUI extends JFrame implements ClientGUI {
     private JScrollPane initializeLeftPanel() {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         JScrollPane sp = new JScrollPane(leftPanel);
-        sp.setMinimumSize(new Dimension(250, 0)); // Same as initial divider location of the JSplitPane
+        sp.setMinimumSize(new Dimension(200, 0)); // Same as initial divider location of the JSplitPane
         return sp;
     }
     
@@ -94,8 +94,8 @@ public class MainGUI extends JFrame implements ClientGUI {
 
     @Override
     public void addMember(Member newMember) {
-        String level =  newMember.isCoordinator()? "coordinator" : "member";
-        leftPanel.add(new MemberGUI(newMember.getUsername() + "-" + newMember.getID() + "-" + level));
+        leftPanel.add(new MemberGUI(newMember));
+        revalidateMembersList();
     }
 
     @Override

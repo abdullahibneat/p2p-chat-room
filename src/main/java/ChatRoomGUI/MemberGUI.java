@@ -1,6 +1,8 @@
 package ChatRoomGUI;
 
-import java.awt.Dimension;
+import ChatRoom.Member;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -10,14 +12,16 @@ import javax.swing.JPanel;
  */
 public class MemberGUI extends JPanel {
     
-    public MemberGUI(String memberName) {
-        init(memberName);
+    public MemberGUI(Member member) {
+        init(member);
     }
     
-    private void init(String memberName) {
-        setPreferredSize(new Dimension(0, 50));
-        setMaximumSize(new Dimension(5000, 50));
-        add(new JLabel(memberName));
+    private void init(Member member) {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        String isCoordinator =  member.isCoordinator()? " (Coordinator)" : "";
+        add(new JLabel("<html><h3>" + member.getUsername() + isCoordinator + "</h3></html>"));
+        add(new JLabel("" + member.getID()));
+        setBorder(BorderFactory.createEmptyBorder(3, 10, 3, 0));
         setVisible(true);
     }
 }
