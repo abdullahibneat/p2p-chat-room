@@ -146,6 +146,7 @@ public class MainGUI extends JFrame implements ClientGUI {
         JTextArea messageText = new JTextArea(message);
         messageText.setLineWrap(true);
         messageText.setEditable(false);
+        messageText.setMargin(new Insets(10, 10, 10, 10)); // Add a margin around the text area
         if(myMessage) messageWrapper.add(new JPanel(), 0.3f);
         messageWrapper.add(messageText, 0.7f);
         if(!myMessage) messageWrapper.add(new JPanel(), 0.3f);
