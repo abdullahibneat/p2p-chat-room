@@ -3,8 +3,11 @@ package ChatRoomGUI;
 import ChatRoom.ClientGUI;
 import ChatRoom.Member;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -30,7 +33,31 @@ public class MainGUI extends JFrame implements ClientGUI {
     private final JButton sendButton = new JButton("Send");
     private final JTextArea messageInput = new JTextArea();
     
+    private final String PLACEHOLDER_TEXT = "Type your message here...";
+    
     public MainGUI() {
+        
+        // Placeholder text
+        messageInput.setForeground(Color.gray);
+        messageInput.setText(PLACEHOLDER_TEXT);
+        messageInput.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if(messageInput.getText().equals(PLACEHOLDER_TEXT)) {
+                    messageInput.setText("");
+                    messageInput.setForeground(Color.black);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if(messageInput.getText().isEmpty()) {
+                    messageInput.setForeground(Color.gray);
+                    messageInput.setText(PLACEHOLDER_TEXT);
+                }
+            }
+        });
+        
         init();
     }
     
@@ -91,6 +118,11 @@ public class MainGUI extends JFrame implements ClientGUI {
     public JTextComponent getMessageInput() {
         return messageInput;
     }
+    
+    @Override
+    public String getPlaceholderText() {
+        return PLACEHOLDER_TEXT;
+    }
 
     @Override
     public void addMember(Member newMember) {
@@ -120,6 +152,12 @@ public class MainGUI extends JFrame implements ClientGUI {
         if(!myMessage) messageWrapper.add(new JPanel(), 0.3f);
         chatPanel.add(messageWrapper, BorderLayout.NORTH);
         chatPanel.revalidate();
+        
+        // Put back placeholder text if this member sent the message
+        if(myMessage) {
+            messageInput.setForeground(Color.gray);
+            messageInput.setText(PLACEHOLDER_TEXT);
+        }
     }
     
 }

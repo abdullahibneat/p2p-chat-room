@@ -11,6 +11,7 @@ import javax.swing.text.JTextComponent;
 public interface ClientGUI {
     public AbstractButton getSendButton();
     public JTextComponent getMessageInput();
+    public String getPlaceholderText();
     
     public void addMember(Member newMember);
     public void clearMembersList();

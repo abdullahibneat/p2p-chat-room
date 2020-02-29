@@ -1,7 +1,6 @@
 package ChatRoom;
 
 import ChatRoomGUI.MainGUI;
-import ChatRoomGUI.MemberGUI;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,7 +8,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 /**
@@ -54,8 +52,8 @@ public final class Client {
         // Add action listener to the "Send" button
         gui.getSendButton().addActionListener(e -> {
             System.out.println("Send button pressed");
-            sendMessage(gui.getMessageInput().getText());
-            gui.getMessageInput().setText("");
+            String message = gui.getMessageInput().getText();
+            if(!message.equals(gui.getPlaceholderText())) sendMessage(message);
         });
         
         // Start the server
