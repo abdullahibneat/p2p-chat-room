@@ -129,7 +129,18 @@ class Handler implements Runnable {
      * @param id ID of the member to be removed.
      */
     private void removeMember(int id) {
-        client.getMembers().removeIf(m -> m.getID() == id); // Find and remove member
+        Member left = null;
+        
+        // Find and remove member
+        for(Member m: client.getMembers()) {
+            if(m.getID() == id) {
+                left = m;
+                client.getMembers().remove(m);
+                break;
+            }
+        }
+        
+        if(left != null) client.postMessage("Member " + left.getUsername() + " left.", MessageType.SYSTEM);
     }
     
     /**

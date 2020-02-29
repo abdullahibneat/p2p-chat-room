@@ -75,7 +75,6 @@ public class CoordinatorThread extends Thread {
                         // Coordinator left, take his role
                         client.me.setCoordinator();
                         client.globalRemoveMember(currentCoordinator.getID(), currentCoordinator.getUsername());
-                        client.sendMessage(currentCoordinator.getUsername() + " left, I'm the coordinator now!");
                         client.sendCommand("newCoordinator:" + client.me.getID());
                         break;
                     } finally {

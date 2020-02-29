@@ -206,7 +206,7 @@ public final class Client {
         getMembers().removeIf(m -> m.getID() == id); // Remove member
         updateMembersList();
         sendCommand("removeMember:"+id);
-        sendMessage("Member " + userName + " left.");
+        postMessage("Member " + userName + " left.", MessageType.SYSTEM);
     }
     
     /**
