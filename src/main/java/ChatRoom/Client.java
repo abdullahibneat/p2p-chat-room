@@ -46,9 +46,8 @@ public final class Client {
      * @throws ChatRoom.PortNotAvailbleException
      * @throws ChatRoom.UnknownMemberException
      * @throws ChatRoom.InvalidUsernameException
-     * @throws ChatRoom.NoInternetException
      */
-    public Client(Member me, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException, NoInternetException {
+    public Client(Member me, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException {
         this.me = me;
         gui = new MainGUI();
         

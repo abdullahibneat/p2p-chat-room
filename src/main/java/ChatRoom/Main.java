@@ -1,5 +1,6 @@
 package ChatRoom;
 
+import java.net.UnknownHostException;
 import javax.swing.JOptionPane;
 
 /**
@@ -19,8 +20,8 @@ public class Main {
         } catch (InvalidUsernameException ex) {
             JOptionPane.showMessageDialog(null, "Invalid username." + ex);
             System.exit(0);
-        } catch (NoInternetException ex) {
-            JOptionPane.showMessageDialog(null, "No internet.");
+        } catch (UnknownHostException ex) {
+            JOptionPane.showMessageDialog(null, "Could not retrieve IP address.");
             System.exit(0);
         } catch (PortNotAvailbleException ex) {
             JOptionPane.showMessageDialog(null, "Port not available.");

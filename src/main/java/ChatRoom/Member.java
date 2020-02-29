@@ -1,9 +1,8 @@
 package ChatRoom;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Class to store details of each member.
@@ -23,25 +22,20 @@ public class Member implements Serializable {
      * @param userName Username
      * @param port Port
      * @throws ChatRoom.InvalidUsernameException
-     * @throws ChatRoom.NoInternetException
+     * @throws java.net.UnknownHostException
      */
-    public Member(String userName, int port) throws InvalidUsernameException, NoInternetException {
-        
-        try {
-            // Check username format
-            if(!(userName.isEmpty() || userName.contains(" "))) {
-                this.userName = userName;
-            } else throw new InvalidUsernameException("Username cannot be empty or contain spaces.");
-            
-            this.port = port;
-            
-            // Get this member's host address
-            Socket s = new Socket();
-            s.connect(new InetSocketAddress("google.com", 80));
-            this.address = s.getLocalAddress().toString().substring(1); // Substring to remove the "/" from the front
-        } catch (IOException e) {
-            throw new NoInternetException("Could not get this machine's host address automatically.");
-        }
+    public Member(String userName, int port) throws InvalidUsernameException, UnknownHostException {
+        // Check username format
+        if(!(userName.isEmpty() || userName.contains(" "))) {
+            this.userName = userName;
+        } else throw new InvalidUsernameException("Username cannot be empty or contain spaces.");
+
+        this.port = port;
+
+        // Get this member's host address
+        this.address = InetAddress.getLocalHost().getHostAddress();
+        System.out.println("Address: " + this.address
+        );
     }
     
     /**

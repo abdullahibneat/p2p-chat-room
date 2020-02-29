@@ -20,10 +20,3 @@ class UnknownMemberException extends Exception {
 class InvalidUsernameException extends Exception {
     public InvalidUsernameException(String errorMessage) { super(errorMessage); }
 }
-
-/**
- * Exception for being unable to connect to the Internet.
- */
-class NoInternetException extends Exception {
-    public NoInternetException(String errorMessage) { super(errorMessage); }
-}
