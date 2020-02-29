@@ -31,7 +31,7 @@ public class ServerThread extends Thread {
         try {
             // Create a server
             server = new ServerSocket(client.me.getPort());
-            client.postMessage("> Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort(), true);
+            client.postMessage("Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort(), MessageType.SYSTEM);
         } catch (IOException e) {
             throw new PortNotAvailbleException("Port not available, try another port.");
         }
@@ -86,7 +86,7 @@ class Handler implements Runnable {
                 else if(message.startsWith("removeMember")) removeMember(Integer.parseInt(message.split(":")[1])); // Someone left the group, remove them from the list
                 else if(message.startsWith("newCoordinator")) newCoordinator(Integer.parseInt(message.split(":")[1])); // Coordinator changed, update the list.
                 else if(message.startsWith("unreachable")) unreachableMember(Integer.parseInt(message.split(":")[1])); // Unreachable member
-                else client.postMessage(message, false); // Normal chat message
+                else client.postMessage(message, MessageType.INBOUND);// Normal chat message
                 
                 client.updateMembersList();
             }
@@ -118,7 +118,7 @@ class Handler implements Runnable {
         // Because of multiple threads, it's possible that when a member joins the chat, the
         // same member receives a request to add himself to the chat.
         if(id != client.me.getID()) {
-            client.postMessage("New member \"" + newMemberArr[0] + "\" joined!", false);
+            client.postMessage("New member \"" + newMemberArr[0] + "\" joined!", MessageType.SYSTEM);
             client.getMembers().add(new Member(userName, id, address, port));
         }
     }
@@ -141,7 +141,7 @@ class Handler implements Runnable {
         for(Member m: client.getMembers()) {
             if(m.getID() == id) {
                 m.setCoordinator();
-                client.postMessage(m.getUsername() + " is the new coordinator!", false);
+                client.postMessage(m.getUsername() + " is the new coordinator!", MessageType.SYSTEM);
                 break;
             }
         }

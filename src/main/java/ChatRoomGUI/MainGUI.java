@@ -2,6 +2,7 @@ package ChatRoomGUI;
 
 import ChatRoom.ClientGUI;
 import ChatRoom.Member;
+import ChatRoom.MessageType;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -13,6 +14,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -140,21 +142,27 @@ public class MainGUI extends JFrame implements ClientGUI {
     public void revalidateMembersList() { leftPanel.revalidate(); }
 
     @Override
-    public void addMessage(String message, boolean myMessage) {
-        JPanel messageWrapper = new JPanel(new RelativeLayout());
-        messageWrapper.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    public void addMessage(String message, MessageType messageType) {
+        JPanel messageWrapper = new JPanel();
         JTextArea messageText = new JTextArea(message);
         messageText.setLineWrap(true);
         messageText.setEditable(false);
         messageText.setMargin(new Insets(10, 10, 10, 10)); // Add a margin around the text area
-        if(myMessage) messageWrapper.add(new JPanel(), 0.3f);
-        messageWrapper.add(messageText, 0.7f);
-        if(!myMessage) messageWrapper.add(new JPanel(), 0.3f);
+        
+        if(messageType == MessageType.SYSTEM) {
+            messageWrapper.add(new JLabel(message));
+        } else {
+            messageWrapper.setLayout(new RelativeLayout());
+            messageWrapper.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            if(messageType == MessageType.OUTBOUND) messageWrapper.add(new JPanel(), 0.3f);
+            messageWrapper.add(messageText, 0.7f);
+            if(messageType == MessageType.INBOUND) messageWrapper.add(new JPanel(), 0.3f);
+        }
         chatPanel.add(messageWrapper, BorderLayout.NORTH);
         chatPanel.revalidate();
         
         // Put back placeholder text if this member sent the message
-        if(myMessage) {
+        if(messageType == MessageType.OUTBOUND) {
             messageInput.setForeground(Color.gray);
             messageInput.setText(PLACEHOLDER_TEXT);
         }

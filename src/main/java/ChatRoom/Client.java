@@ -78,7 +78,7 @@ public final class Client {
         } else {
             try {
                 tempMembers = sendRequest(existingMemberAddress, existingMemberPort);
-                postMessage("Connected!", true);
+                postMessage("Connected!", MessageType.SYSTEM);
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
             }
@@ -113,7 +113,7 @@ public final class Client {
     private List<Member> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException, InvalidUsernameException {
         System.out.println("sendRequest(" + address + ", " + port + ")");
         try {
-            postMessage("Sending request...", true);
+            postMessage("Sending request...", MessageType.SYSTEM);
             Socket conn = new Socket(address, port);
             ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
             out.writeObject(me);
@@ -146,7 +146,7 @@ public final class Client {
     protected void incomingRequest(Member newMember, Socket conn) {
         System.out.println("incomingRequest(" + newMember + ", " + conn + ")");
         try {
-            int ans = JOptionPane.showConfirmDialog(null, "> Connection request from " + newMember.getUsername() + ". Add to list?");
+            int ans = JOptionPane.showConfirmDialog(null, "Connection request from " + newMember.getUsername() + ". Add to list?");
             if(ans == JOptionPane.YES_OPTION) {
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
                 
@@ -176,7 +176,7 @@ public final class Client {
                 // Notify everyone of this new member
                 globalAddMember(newMember);
             } else {
-                postMessage("> Ignoring...", true);
+                postMessage("Ignoring...", MessageType.SYSTEM);
             }
         } catch(IOException e) {}
     }
@@ -192,7 +192,7 @@ public final class Client {
         sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         getMembers().add(newMember);
         updateMembersList();
-        postMessage("> Everyone notified of new member.", true);
+        postMessage("Everyone notified of new member.", MessageType.SYSTEM);
     }
     
     /**
@@ -216,7 +216,7 @@ public final class Client {
      */
     protected void sendMessage(String message) {
         System.out.println("sendMessage(" + message + ")");
-        postMessage(message, true);
+        postMessage(message, MessageType.OUTBOUND);
         sendMessage(message, false);
     }
     
@@ -244,11 +244,11 @@ public final class Client {
      * Method to add messages to the chat area
      * 
      * @param message Message to be added to the chat
-     * @param myMessage Set to true if message is sent by this client, false if message comes from other members.
+     * @param messageType Whether this message is a SYSTEM, INBOUND or OUTBOUND.
      */
-    protected void postMessage(String message, boolean myMessage) {
+    protected void postMessage(String message, MessageType messageType) {
         System.out.println("postMessage(" + message + ")");
-        gui.addMessage(message, myMessage);
+        gui.addMessage(message, messageType);
     }
     
     /**
