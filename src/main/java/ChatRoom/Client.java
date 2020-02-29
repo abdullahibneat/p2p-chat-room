@@ -27,7 +27,7 @@ public final class Client {
     protected final Member me; // This member's details
     protected boolean online = false; // Set to true when member connected to netowrk
     
-    private final MainGUI gui;
+    private final ClientGUI gui;
     private final ServerThread server; // Server
     private final List<Member> members; // List of members
     private final List<Member> unreachableMembers = Collections.synchronizedList(new ArrayList<>());
@@ -52,13 +52,11 @@ public final class Client {
         gui = new MainGUI();
         
         // Add action listener to the "Send" button
-        gui.messageSendButton.addActionListener(e -> {
+        gui.getSendButton().addActionListener(e -> {
             System.out.println("Send button pressed");
-            sendMessage(gui.messageInput.getText());
-            gui.messageInput.setText("");
+            sendMessage(gui.getMessageInput().getText());
+            gui.getMessageInput().setText("");
         });
-        
-        gui.setVisible(true);
         
         // Start the server
         server = new ServerThread(this);
@@ -82,7 +80,7 @@ public final class Client {
         } else {
             try {
                 tempMembers = sendRequest(existingMemberAddress, existingMemberPort);
-                postMessage("Connected!");
+                postMessage("Connected!", true);
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
             }
@@ -117,7 +115,7 @@ public final class Client {
     private List<Member> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException, InvalidUsernameException {
         System.out.println("sendRequest(" + address + ", " + port + ")");
         try {
-            postMessage("Sending request...");
+            postMessage("Sending request...", true);
             Socket conn = new Socket(address, port);
             ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
             out.writeObject(me);
@@ -180,7 +178,7 @@ public final class Client {
                 // Notify everyone of this new member
                 globalAddMember(newMember);
             } else {
-                postMessage("> Ignoring...");
+                postMessage("> Ignoring...", true);
             }
         } catch(IOException e) {}
     }
@@ -196,7 +194,7 @@ public final class Client {
         sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         getMembers().add(newMember);
         updateMembersList();
-        postMessage("> Everyone notified of new member.");
+        postMessage("> Everyone notified of new member.", true);
     }
     
     /**
@@ -220,7 +218,7 @@ public final class Client {
      */
     protected void sendMessage(String message) {
         System.out.println("sendMessage(" + message + ")");
-        postMessage(message);
+        postMessage(message, true);
         sendMessage(message, false);
     }
     
@@ -248,11 +246,11 @@ public final class Client {
      * Method to add messages to the chat area
      * 
      * @param message Message to be added to the chat
+     * @param myMessage Set to true if message is sent by this client, false if message comes from other members.
      */
-    protected void postMessage(String message) {
+    protected void postMessage(String message, boolean myMessage) {
         System.out.println("postMessage(" + message + ")");
-        gui.chatPanel.add(new JLabel(message));
-        gui.revalidate();
+        gui.addMessage(message, myMessage);
     }
     
     /**
@@ -260,7 +258,7 @@ public final class Client {
      */
     protected synchronized void updateMembersList() {
         System.out.println("updateMembersList()");
-        gui.membersList.removeAll();
+        gui.clearMembersList();
         
         // Reset lowest and highest ID
         oldestMemberID = me.getID();
@@ -269,9 +267,7 @@ public final class Client {
         for(Member member: getMembers()) {
             if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
             else if(member.getID() < oldestMemberID && !member.isCoordinator()) oldestMemberID = member.getID(); // Find the lowest ID
-            String level = member.isCoordinator()? "coordinator" : "member";
-            MemberGUI m = new MemberGUI(member.getUsername() + "-" + member.getID() + "-" + level);
-            gui.membersList.add(m);
+            gui.addMember(member);
         }
         
         // Check if this member is the next coordinator
@@ -282,9 +278,7 @@ public final class Client {
         }
         
         System.out.println("Me: " + me.getID() + ", oldest: " + oldestMemberID + ", newest: " + newestMemberID);
-        
-        gui.membersList.revalidate();
-        gui.membersList.repaint();
+        gui.revalidateMembersList();
     }
     
     /**
