@@ -3,10 +3,13 @@ package ChatRoomGUI;
 import ChatRoom.ClientGUI;
 import ChatRoom.Member;
 import ChatRoom.MessageType;
+import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.AbstractButton;
@@ -16,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -31,6 +35,7 @@ public class MainGUI extends JFrame implements ClientGUI {
     private final JSplitPane sp = new JSplitPane();
     private final JPanel leftPanel = new JPanel(); // Panel to display all members
     private final JPanel rightPanel = new JPanel(); // Panel with chat, message input and send button.
+    private JScrollPane chatScrollPane = null;
     private final JPanel chatPanel = new JPanel(); // Chat messages are displayed here
     private final JButton sendButton = new JButton("Send");
     private final JTextArea messageInput = new JTextArea();
@@ -104,7 +109,10 @@ public class MainGUI extends JFrame implements ClientGUI {
         chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
         topRight.add(chatPanel, BorderLayout.NORTH);
         
-        rightPanel.add(new JScrollPane(topRight), 0.8f);
+        chatScrollPane = new JScrollPane(topRight);
+        chatScrollPane.getVerticalScrollBar().setUnitIncrement(20); // Increase scroll speed
+        
+        rightPanel.add(chatScrollPane, 0.8f);
         
         RelativeLayout inputPanelLayout = new RelativeLayout();
         inputPanelLayout.setFill(true);
@@ -167,12 +175,30 @@ public class MainGUI extends JFrame implements ClientGUI {
         }
         chatPanel.add(messageWrapper, BorderLayout.NORTH);
         chatPanel.revalidate();
+        chatScrollToBottom();
         
         // Put back placeholder text if this member sent the message
         if(messageType == MessageType.OUTBOUND) {
             messageInput.setForeground(Color.gray);
             messageInput.setText(PLACEHOLDER_TEXT);
         }
+    }
+    
+    /**
+     * Method to allow automatic scrolling to the bottom of the chat when
+     * a new message is received.
+     */
+    private void chatScrollToBottom() {
+        JScrollBar verticalBar = chatScrollPane.getVerticalScrollBar();
+        AdjustmentListener downScroller = new AdjustmentListener() {
+            @Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                Adjustable adjustable = e.getAdjustable();
+                adjustable.setValue(adjustable.getMaximum());
+                verticalBar.removeAdjustmentListener(this);
+            }
+        };
+        verticalBar.addAdjustmentListener(downScroller);
     }
     
 }
