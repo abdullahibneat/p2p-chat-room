@@ -49,6 +49,10 @@ public final class Client {
         this.me = me;
         gui = new MainGUI();
         
+        // Disable input until connected to server
+        gui.getMessageInput().setEnabled(false);
+        gui.getSendButton().setEnabled(false);
+        
         // Add action listener to the "Send" button
         gui.getSendButton().addActionListener(e -> {
             System.out.println("Send button pressed");
@@ -85,6 +89,11 @@ public final class Client {
         }
         members = tempMembers;
         online = true;
+        
+        // Connected, enable input
+        gui.getMessageInput().setEnabled(true);
+        gui.getSendButton().setEnabled(true);
+        
         // Start CoordinatorThread is this member is the coordinator
         // Late start because otherwise "members" in null, so start after "members" has been assigned.
         if(coordinatorThread != null) coordinatorThread.start();
