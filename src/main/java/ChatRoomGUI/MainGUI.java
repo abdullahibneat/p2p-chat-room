@@ -176,6 +176,7 @@ public class MainGUI extends JFrame implements ClientGUI {
         chatPanel.add(messageWrapper, BorderLayout.NORTH);
         chatPanel.revalidate();
         chatScrollToBottom();
+        chatPanel.getComponent(0).requestFocusInWindow(); // If enter key is pressed, disable focus from message input area.
         
         // Put back placeholder text if this member sent the message
         if(messageType == MessageType.OUTBOUND) {

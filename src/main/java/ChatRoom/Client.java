@@ -1,6 +1,8 @@
 package ChatRoom;
 
 import ChatRoomGUI.MainGUI;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -56,8 +58,33 @@ public final class Client {
         // Add action listener to the "Send" button
         gui.getSendButton().addActionListener(e -> {
             System.out.println("Send button pressed");
-            String message = gui.getMessageInput().getText();
+                    String message = gui.getMessageInput().getText().trim();
             if(!message.equals(gui.getPlaceholderText())) sendMessage(message);
+        });
+        
+        // Send messages when enter key is pressed
+        gui.getMessageInput().addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {}
+
+            @Override
+            public void keyPressed(KeyEvent e) {}
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // If enter key is pressed...
+                if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    // .. if SHIFT is held down, add new line
+                    if(e.isShiftDown()) gui.getMessageInput().setText(gui.getMessageInput().getText() + "\n");
+                    
+                    // if SHIFT is NOT held down, send the message
+                    else {
+                        System.out.println("Enter key pressed");
+                        String message = gui.getMessageInput().getText().trim();
+                        if(!message.equals(gui.getPlaceholderText())) sendMessage(message);
+                    }
+                }
+            }
         });
         
         // Start the server
