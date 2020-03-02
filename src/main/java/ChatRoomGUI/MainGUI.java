@@ -140,19 +140,20 @@ public class MainGUI extends JFrame implements ClientGUI {
     @Override
     public void addMember(Member newMember) {
         leftPanel.add(new MemberGUI(newMember));
-        revalidateMembersList();
+        refreshMembersList();
     }
 
     @Override
     public void clearMembersList() { leftPanel.removeAll(); }
     
     @Override
-    public void revalidateMembersList() {
+    public void refreshMembersList() {
         if(leftPanel.getComponents().length == 0) {
             JPanel pnl = new JPanel();
             pnl.add(new JLabel("No members connected."));
             leftPanel.add(pnl);
         }
+        leftPanel.repaint();
         leftPanel.revalidate();
     }
 

@@ -45,7 +45,7 @@ public interface ClientGUI {
     /**
      * Method to refresh the panel of members.
      */
-    public void revalidateMembersList();
+    public void refreshMembersList();
     
     /**
      * Method to add a chat to the chat panel.

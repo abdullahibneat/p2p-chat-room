@@ -141,6 +141,8 @@ class Handler implements Runnable {
         }
         
         if(left != null) client.postMessage("Member " + left.getUsername() + " left.", MessageType.SYSTEM);
+        
+        client.updateMembersList();
     }
     
     /**

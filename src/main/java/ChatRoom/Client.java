@@ -312,7 +312,7 @@ public final class Client {
         }
         
         System.out.println("Me: " + me.getID() + ", oldest: " + oldestMemberID + ", newest: " + newestMemberID);
-        gui.revalidateMembersList();
+        gui.refreshMembersList();
     }
     
     /**
