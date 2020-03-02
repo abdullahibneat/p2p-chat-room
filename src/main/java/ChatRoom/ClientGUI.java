@@ -51,7 +51,7 @@ public interface ClientGUI {
      * Method to add a chat to the chat panel.
      * 
      * @param message The message to be added.
-     * @param messageType Whether this message is a SYSTEM, INBOUND or OUTBOUND.
+     * @param myMessage Whether the message is sent by the client.
      */
-    public void addMessage(String message, MessageType messageType);
+    public void addMessage(Message message, boolean myMessage);
 }

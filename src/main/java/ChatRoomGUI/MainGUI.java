@@ -2,7 +2,7 @@ package ChatRoomGUI;
 
 import ChatRoom.ClientGUI;
 import ChatRoom.Member;
-import ChatRoom.MessageType;
+import ChatRoom.Message;
 import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -13,7 +13,6 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -158,13 +157,14 @@ public class MainGUI extends JFrame implements ClientGUI {
     }
 
     @Override
-    public void addMessage(String message, MessageType messageType) {
-        chatPanel.add(new MessageGUI(message, messageType), BorderLayout.NORTH);
+    public void addMessage(Message message, boolean myMessage) {
+        System.out.println("mymessage? " + myMessage);
+        chatPanel.add(new MessageGUI(message, myMessage), BorderLayout.NORTH);
         chatPanel.revalidate();
         chatScrollToBottom();
         
         // Put back placeholder text if this member sent the message
-        if(messageType == MessageType.OUTBOUND) {
+        if(myMessage) {
             chatPanel.getComponent(0).requestFocusInWindow(); // If enter key is pressed, disable focus from message input area.
             messageInput.requestFocusInWindow();
             messageInput.setForeground(Color.gray);

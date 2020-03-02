@@ -1,5 +1,6 @@
 package ChatRoomGUI;
 
+import ChatRoom.Message;
 import ChatRoom.MessageType;
 import java.awt.Insets;
 import javax.swing.BorderFactory;
@@ -14,29 +15,31 @@ import javax.swing.JTextArea;
  */
 public class MessageGUI extends JPanel {
     
-    private final String message;
-    private final MessageType messageType;
+    private final Message message;
+    private final boolean myMessage;
     
-    public MessageGUI(String message, MessageType messageType) {
+    public MessageGUI(Message message, boolean myMessage) {
         this.message = message;
-        this.messageType = messageType;
+        this.myMessage = myMessage;
         init();
     }
     
     private void init() {
-        JTextArea messageText = new JTextArea(message);
-        messageText.setLineWrap(true);
-        messageText.setEditable(false);
-        messageText.setMargin(new Insets(10, 10, 10, 10)); // Add a margin around the text area
-        
-        if(messageType == MessageType.SYSTEM) {
-            add(new JLabel(message));
+        if(message.getMessageType() == MessageType.SYSTEM) {
+            add(new JLabel(message.getContent()));
         } else {
+            JTextArea messageText = new JTextArea((myMessage? "" : message.getUsername() + ": ") + message.getContent());
+            
+            messageText.setLineWrap(true);
+            messageText.setEditable(false);
+            messageText.setMargin(new Insets(10, 10, 10, 10)); // Add a margin around the text area
+            
             setLayout(new RelativeLayout());
+            
             setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-            if(messageType == MessageType.OUTBOUND) add(new JPanel(), 0.3f);
+            if(myMessage) add(new JPanel(), 0.3f);
             add(messageText, 0.7f);
-            if(messageType == MessageType.INBOUND) add(new JPanel(), 0.3f);
+            if(!myMessage) add(new JPanel(), 0.3f);
         }
     }
 }

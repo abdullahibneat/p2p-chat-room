@@ -31,7 +31,7 @@ public class ServerThread extends Thread {
         try {
             // Create a server
             server = new ServerSocket(client.me.getPort());
-            client.postMessage("Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort(), MessageType.SYSTEM);
+            client.postMessage(new Message(client.me.getUsername(), "Share your ADDRESS:PORT with other members: " + c.me.getAddress() + ":" + c.me.getPort(), MessageType.SYSTEM));
         } catch (IOException e) {
             throw new PortNotAvailbleException("Port not available, try another port.");
         }
@@ -79,19 +79,40 @@ class Handler implements Runnable {
             Object obj = in.readObject();
 
             // If string, it could be a normal message or command.
-            if(obj instanceof String) {
-                String message = (String)obj;
-
-                if(message.startsWith("newMember")) newMember(message); // New member joined the network, add them to the list. FORMAT => newMember:username:id:address:port
-                else if(message.startsWith("removeMember")) removeMember(Integer.parseInt(message.split(":")[1])); // Someone left the group, remove them from the list
-                else if(message.startsWith("newCoordinator")) newCoordinator(Integer.parseInt(message.split(":")[1])); // Coordinator changed, update the list.
-                else if(message.startsWith("unreachable")) unreachableMember(Integer.parseInt(message.split(":")[1])); // Unreachable member
-                else client.postMessage(message, MessageType.INBOUND);// Normal chat message
+            if(obj instanceof Message) {
+                
+                Message message = (Message)obj;
+                
+                if(message.getMessageType() == MessageType.COMMAND) {
+                    String command = message.getContent().split(":")[0];
+                    String param = message.getContent().split(":", 2)[1];
+                    
+                    switch(command) {
+                        case "newMember": // New member joined the network, add them to the list. FORMAT => newMember:username:id:address:port
+                            newMember(param);
+                            break;
+                        case "removeMember": // Someone left the group, remove them from the list
+                            removeMember(Integer.parseInt(param));
+                            break;
+                        case "newCoordinator": // Coordinator changed, update the list.
+                            newCoordinator(Integer.parseInt(param));
+                            break;
+                        case "unreachable": // Unreachable member
+                            unreachableMember(Integer.parseInt(param));
+                            break;
+                        default:
+                            System.out.println("Unknown command: " + command);
+                    }
+                } else {
+                    client.postMessage(message); // Normal chat message
+                }
                 
                 client.updateMembersList();
             }
             // If Member, someone is trying to join the network
             else if(obj instanceof Member) client.incomingRequest((Member)obj, conn);
+            
+            else System.out.println("unexpected object " + obj.getClass().getSimpleName());
             
             conn.close();
         } catch(EOFException e) {
@@ -109,7 +130,7 @@ class Handler implements Runnable {
      * @param newMemberString Details of member in the format newMember:username:id:address:port
      */
     private void newMember(String newMemberString) {
-        String[] newMemberArr = newMemberString.substring(10).split(":"); // Remove "newMember:", FORMAT => username:id:address:port
+        String[] newMemberArr = newMemberString.split(":"); // Remove "newMember:", FORMAT => username:id:address:port
         String userName = newMemberArr[0];
         int id = Integer.parseInt(newMemberArr[1]);
         String address = newMemberArr[2];
@@ -118,7 +139,7 @@ class Handler implements Runnable {
         // Because of multiple threads, it's possible that when a member joins the chat, the
         // same member receives a request to add himself to the chat.
         if(id != client.me.getID()) {
-            client.postMessage("New member \"" + newMemberArr[0] + "\" joined the chat!", MessageType.SYSTEM);
+            client.postMessage(new Message(client.me.getUsername(), "New member \"" + newMemberArr[0] + "\" joined the chat!", MessageType.SYSTEM));
             client.getMembers().add(new Member(userName, id, address, port));
         }
     }
@@ -140,7 +161,7 @@ class Handler implements Runnable {
             }
         }
         
-        if(left != null) client.postMessage("Member " + left.getUsername() + " left.", MessageType.SYSTEM);
+        if(left != null) client.postMessage(new Message(client.me.getUsername(), "Member " + left.getUsername() + " left.", MessageType.SYSTEM));
         
         client.updateMembersList();
     }
@@ -154,7 +175,7 @@ class Handler implements Runnable {
         for(Member m: client.getMembers()) {
             if(m.getID() == id) {
                 m.setCoordinator();
-                client.postMessage(m.getUsername() + " is the new coordinator!", MessageType.SYSTEM);
+                client.postMessage(new Message(client.me.getUsername(), m.getUsername() + " is the new coordinator!", MessageType.SYSTEM));
                 break;
             }
         }

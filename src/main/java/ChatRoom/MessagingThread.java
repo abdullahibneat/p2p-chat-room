@@ -16,13 +16,11 @@ import java.net.Socket;
 public class MessagingThread extends Thread {
     
     private final Client c;
-    private final String message;
-    private final boolean isCommand;
+    private final Message message;
     
-    public MessagingThread(Client c, String message, boolean isCommand) {
+    public MessagingThread(Client c, Message message) {
         this.c = c;
         this.message = message;
-        this.isCommand = isCommand;
         this.start();
     }
     
@@ -34,7 +32,7 @@ public class MessagingThread extends Thread {
                     Socket conn = new Socket(member.getAddress(), member.getPort());
                     conn.setSoTimeout(1);
                     ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                    out.writeObject(isCommand? message : c.me.getUsername() + ": " + message);
+                    out.writeObject(message);
                     out.flush();
                     conn.close();
                 } catch (IOException e) {

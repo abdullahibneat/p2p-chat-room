@@ -6,7 +6,7 @@ package ChatRoom;
  * @author iAbdu
  */
 public enum MessageType {
+    COMMAND,
     SYSTEM,
-    INBOUND,
-    OUTBOUND
+    MESSAGE
 }

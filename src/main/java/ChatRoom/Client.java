@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.JOptionPane;
 
 /**
  * Class responsible for creating a new client for a member.
@@ -58,7 +57,7 @@ public final class Client {
         // Add action listener to the "Send" button
         gui.getSendButton().addActionListener(e -> {
             System.out.println("Send button pressed");
-                    String message = gui.getMessageInput().getText().trim();
+            String message = gui.getMessageInput().getText().trim();
             if(!message.equals(gui.getPlaceholderText())) sendMessage(message);
         });
         
@@ -109,7 +108,7 @@ public final class Client {
         } else {
             try {
                 tempMembers = sendRequest(existingMemberAddress, existingMemberPort);
-                postMessage("Connected!", MessageType.SYSTEM);
+                postMessage(new Message(me.getUsername(), "Connected!", MessageType.SYSTEM));
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
             }
@@ -149,7 +148,7 @@ public final class Client {
     private List<Member> sendRequest(String address, int port) throws UnknownMemberException, ClassNotFoundException, InvalidUsernameException {
         System.out.println("sendRequest(" + address + ", " + port + ")");
         try {
-            postMessage("Sending request...", MessageType.SYSTEM);
+            postMessage(new Message(me.getUsername(), "Sending request...", MessageType.SYSTEM));
             Socket conn = new Socket(address, port);
             ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
             out.writeObject(me);
@@ -223,7 +222,7 @@ public final class Client {
         sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         getMembers().add(newMember);
         updateMembersList();
-        postMessage("New member \"" + newMember.getUsername() + "\" joined the chat!", MessageType.SYSTEM);
+        postMessage(new Message(me.getUsername(), "New member \"" + newMember.getUsername() + "\" joined the chat!", MessageType.SYSTEM));
     }
     
     /**
@@ -237,7 +236,7 @@ public final class Client {
         getMembers().removeIf(m -> m.getID() == id); // Remove member
         updateMembersList();
         sendCommand("removeMember:"+id);
-        postMessage("Member " + userName + " left.", MessageType.SYSTEM);
+        postMessage(new Message(me.getUsername(), "Member " + userName + " left.", MessageType.SYSTEM));
     }
     
     /**
@@ -247,8 +246,7 @@ public final class Client {
      */
     protected void sendMessage(String message) {
         System.out.println("sendMessage(" + message + ")");
-        postMessage(message, MessageType.OUTBOUND);
-        sendMessage(message, false);
+        sendMessage(new Message(me.getUsername(), message, MessageType.MESSAGE));
     }
     
     /**
@@ -258,7 +256,7 @@ public final class Client {
      */
     protected void sendCommand(String command) {
         System.out.println("sendCommand(" + command + ")");
-        sendMessage(command, true);
+        sendMessage(new Message(me.getUsername(), command, MessageType.COMMAND));
     }
     
     /**
@@ -267,19 +265,19 @@ public final class Client {
      * @param string Message to be sent
      * @param isCommand Set to true if this is command
      */
-    private void sendMessage(String string, boolean isCommand) {
-        new MessagingThread(this, string, isCommand);
+    private void sendMessage(Message message) {
+        new MessagingThread(this, message);
+        if(message.getMessageType() == MessageType.MESSAGE) postMessage(message);
     }
     
     /**
      * Method to add messages to the chat area
      * 
      * @param message Message to be added to the chat
-     * @param messageType Whether this message is a SYSTEM, INBOUND or OUTBOUND.
      */
-    protected void postMessage(String message, MessageType messageType) {
+    protected void postMessage(Message message) {
         System.out.println("postMessage(" + message + ")");
-        gui.addMessage(message, messageType);
+        gui.addMessage(message, message.getUsername().equals(me.getUsername()));
     }
     
     /**
