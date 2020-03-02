@@ -118,7 +118,7 @@ class Handler implements Runnable {
         // Because of multiple threads, it's possible that when a member joins the chat, the
         // same member receives a request to add himself to the chat.
         if(id != client.me.getID()) {
-            client.postMessage("New member \"" + newMemberArr[0] + "\" joined!", MessageType.SYSTEM);
+            client.postMessage("New member \"" + newMemberArr[0] + "\" joined the chat!", MessageType.SYSTEM);
             client.getMembers().add(new Member(userName, id, address, port));
         }
     }

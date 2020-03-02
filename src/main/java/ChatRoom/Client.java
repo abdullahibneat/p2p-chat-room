@@ -182,38 +182,33 @@ public final class Client {
     protected void incomingRequest(Member newMember, Socket conn) {
         System.out.println("incomingRequest(" + newMember + ", " + conn + ")");
         try {
-            int ans = JOptionPane.showConfirmDialog(null, "Connection request from " + newMember.getUsername() + ". Add to list?");
-            if(ans == JOptionPane.YES_OPTION) {
-                ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                
-                // New user's username MUST BE UNIQUE
-                boolean usernameUnique = true;
+            ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
 
-                // Send list of all members in the network
-                ArrayList<Member> everyone = new ArrayList<>();
-                for(Member existingMember: getMembers()) {
-                    // Check is username is already in use
-                    if(existingMember.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
-                        usernameUnique = false;
-                        break;
-                    }
-                    everyone.add(existingMember);
-                }
-                everyone.add(me);
-                if(me.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
+            // New user's username MUST BE UNIQUE
+            boolean usernameUnique = true;
+
+            // Send list of all members in the network
+            ArrayList<Member> everyone = new ArrayList<>();
+            for(Member existingMember: getMembers()) {
+                // Check is username is already in use
+                if(existingMember.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
                     usernameUnique = false;
-                    everyone.clear();
+                    break;
                 }
-                
-                out.writeObject(everyone);
-                out.flush();
-                conn.close();
-
-                // Notify everyone of this new member
-                globalAddMember(newMember);
-            } else {
-                postMessage("Ignoring...", MessageType.SYSTEM);
+                everyone.add(existingMember);
             }
+            everyone.add(me);
+            if(me.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
+                usernameUnique = false;
+                everyone.clear(); // Clear list let's the new member know the username is already in use.
+            }
+
+            out.writeObject(everyone);
+            out.flush();
+            conn.close();
+
+            // Notify everyone of this new member
+            globalAddMember(newMember);
         } catch(IOException e) {}
     }
     
@@ -228,7 +223,7 @@ public final class Client {
         sendCommand("newMember:"+newMember.getUsername()+":"+newestMemberID+":"+newMember.getAddress()+":"+newMember.getPort()); // FORMAT => username:id:address:port
         getMembers().add(newMember);
         updateMembersList();
-        postMessage("Everyone notified of new member.", MessageType.SYSTEM);
+        postMessage("New member \"" + newMember.getUsername() + "\" joined the chat!", MessageType.SYSTEM);
     }
     
     /**
