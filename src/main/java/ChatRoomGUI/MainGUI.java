@@ -159,28 +159,14 @@ public class MainGUI extends JFrame implements ClientGUI {
 
     @Override
     public void addMessage(String message, MessageType messageType) {
-        JPanel messageWrapper = new JPanel();
-        JTextArea messageText = new JTextArea(message);
-        messageText.setLineWrap(true);
-        messageText.setEditable(false);
-        messageText.setMargin(new Insets(10, 10, 10, 10)); // Add a margin around the text area
-        
-        if(messageType == MessageType.SYSTEM) {
-            messageWrapper.add(new JLabel(message));
-        } else {
-            messageWrapper.setLayout(new RelativeLayout());
-            messageWrapper.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-            if(messageType == MessageType.OUTBOUND) messageWrapper.add(new JPanel(), 0.3f);
-            messageWrapper.add(messageText, 0.7f);
-            if(messageType == MessageType.INBOUND) messageWrapper.add(new JPanel(), 0.3f);
-        }
-        chatPanel.add(messageWrapper, BorderLayout.NORTH);
+        chatPanel.add(new MessageGUI(message, messageType), BorderLayout.NORTH);
         chatPanel.revalidate();
         chatScrollToBottom();
-        chatPanel.getComponent(0).requestFocusInWindow(); // If enter key is pressed, disable focus from message input area.
         
         // Put back placeholder text if this member sent the message
         if(messageType == MessageType.OUTBOUND) {
+            chatPanel.getComponent(0).requestFocusInWindow(); // If enter key is pressed, disable focus from message input area.
+            messageInput.requestFocusInWindow();
             messageInput.setForeground(Color.gray);
             messageInput.setText(PLACEHOLDER_TEXT);
         }
