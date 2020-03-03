@@ -12,19 +12,19 @@ public class Message implements Serializable {
     private final String userName;
     private final MessageType messageType;
     private final String content;
-    private final String timestamp;
+    private final LocalDateTime timestamp;
     
     public Message(String userName, String content, MessageType messageType) {
         this.userName = userName;
         this.content = content;
         this.messageType = messageType;
-        this.timestamp = LocalDateTime.now().toString();
+        this.timestamp = LocalDateTime.now();
     }
     
     public String getUsername() { return userName; }
     public MessageType getMessageType() { return messageType; }
     public String getContent() { return content; }
-    public String getTimestamp() { return timestamp; }
+    public LocalDateTime getTimestamp() { return timestamp; }
     
     @Override
     public String toString() {
