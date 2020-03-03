@@ -82,8 +82,6 @@ public class MainGUI extends JFrame implements ClientGUI {
         sp.setRightComponent(initializeRightPanel());
         
         add(sp);
-        
-        setVisible(true);
     }
     
     /**
@@ -169,6 +167,11 @@ public class MainGUI extends JFrame implements ClientGUI {
             messageInput.setForeground(Color.gray);
             messageInput.setText(PLACEHOLDER_TEXT);
         }
+    }
+    
+    @Override
+    public void setVisibility(boolean visible) {
+        setVisible(visible);
     }
     
     /**

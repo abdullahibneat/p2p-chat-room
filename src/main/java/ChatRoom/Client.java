@@ -40,15 +40,17 @@ public final class Client {
      * Creates a single client.
      * 
      * @param me Owner of this client
+     * @param showGUI Whether GUI should be visible.
      * @param existingMemberAddress Host address of an existing member
      * @param existingMemberPort Port number of the existing member
      * @throws ChatRoom.PortNotAvailbleException
      * @throws ChatRoom.UnknownMemberException
      * @throws ChatRoom.InvalidUsernameException
      */
-    public Client(Member me, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException {
+    public Client(Member me, boolean showGUI, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException {
         this.me = me;
         gui = new MainGUI();
+        gui.setVisibility(showGUI);
         
         // Disable input until connected to server
         gui.getMessageInput().setEnabled(false);

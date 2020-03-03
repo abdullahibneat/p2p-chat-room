@@ -54,4 +54,11 @@ public interface ClientGUI {
      * @param myMessage Whether the message is sent by the client.
      */
     public void addMessage(Message message, boolean myMessage);
+    
+    /**
+     * Method to set the GUI's visibility.
+     * 
+     * @param visible Visibility setting
+     */
+    public void setVisibility(boolean visible);
 }
