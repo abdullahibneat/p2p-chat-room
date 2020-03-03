@@ -16,7 +16,7 @@ public class Main {
             Member m = new Member(myUsername, myPort);
             String host = JOptionPane.showInputDialog("Other Member host");
             int port = host.isEmpty()? 0 : Integer.parseInt(JOptionPane.showInputDialog("Other member port")); // Show port dialog only if host is specified.
-            Client c = new Client(m, false, host, port);
+            Client c = new Client(m, true, host, port);
         } catch (InvalidUsernameException ex) {
             JOptionPane.showMessageDialog(null, "Invalid username." + ex);
             System.exit(0);

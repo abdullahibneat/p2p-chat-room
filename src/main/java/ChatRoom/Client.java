@@ -60,7 +60,7 @@ public final class Client {
         gui.getSendButton().addActionListener(e -> {
             System.out.println("Send button pressed");
             String message = gui.getMessageInput().getText().trim();
-            if(!message.equals(gui.getPlaceholderText())) sendMessage(message);
+            if(!message.isEmpty() && !message.equals(gui.getPlaceholderText())) sendMessage(message);
         });
         
         // Send messages when enter key is pressed
@@ -82,7 +82,8 @@ public final class Client {
                     else {
                         System.out.println("Enter key pressed");
                         String message = gui.getMessageInput().getText().trim();
-                        if(!message.equals(gui.getPlaceholderText())) sendMessage(message);
+                        if(!message.isEmpty() && !message.equals(gui.getPlaceholderText())) sendMessage(message);
+                        else gui.getMessageInput().setText(""); // Pressing enter creates new line, remove it from text area.
                     }
                 }
             }
@@ -342,5 +343,12 @@ public final class Client {
                 System.out.println("error connecting to the coordinator: " + e);
             }
         }
+    }
+    
+    /**
+     * Method to terminate application.
+     */
+    public void quit() {
+        System.exit(0);
     }
 }
