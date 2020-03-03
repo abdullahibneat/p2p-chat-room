@@ -158,7 +158,6 @@ public class MainGUI extends JFrame implements ClientGUI {
 
     @Override
     public void addMessage(Message message, boolean myMessage) {
-        System.out.println("mymessage? " + myMessage);
         chatPanel.add(new MessageGUI(message, myMessage), BorderLayout.NORTH);
         chatPanel.revalidate();
         chatScrollToBottom();

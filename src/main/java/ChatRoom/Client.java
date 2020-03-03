@@ -233,10 +233,15 @@ public final class Client {
      */
     protected void globalRemoveMember(int id, String userName) {
         System.out.println("globalRemoveMember(" + id + ", " + userName + ")");
-        getMembers().removeIf(m -> m.getID() == id); // Remove member
-        updateMembersList();
+        for(Member m: getMembers()) {
+            if(m.getID() == id) {
+                getMembers().remove(m);
+                postMessage(new Message(me.getUsername(), "Member " + userName + " left.", MessageType.SYSTEM));
+                updateMembersList();
+                break;
+            }
+        }
         sendCommand("removeMember:"+id);
-        postMessage(new Message(me.getUsername(), "Member " + userName + " left.", MessageType.SYSTEM));
     }
     
     /**
