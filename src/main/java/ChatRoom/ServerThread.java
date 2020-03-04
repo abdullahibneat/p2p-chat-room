@@ -125,7 +125,7 @@ class Handler implements Runnable {
             // If Member, someone is trying to join the network
             else if(obj instanceof Member) client.incomingRequest((Member)obj, conn);
             
-            else System.out.println("unexpected object " + obj.getClass().getSimpleName());
+            else System.out.println("unexpected object " + obj.getClass().getSimpleName() + " " + obj);
             
             conn.close();
         } catch(EOFException e) {

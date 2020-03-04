@@ -139,6 +139,10 @@ public final class Client {
      */
     protected synchronized List<Member> getMembers() {
         System.out.println("getMembers()");
+        
+        // Wait for members to be initialised
+        while(members == null) {}
+        
         return members;
     }
     
@@ -337,7 +341,7 @@ public final class Client {
             Member coordinator = members.get(0);
             try (Socket conn = new Socket(coordinator.getAddress(), coordinator.getPort())) {
                 ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-                out.writeObject("unreachable:" + m.getID());
+                out.writeObject(new Message(me.getUsername(), "unreachable:" + m.getID(), MessageType.COMMAND));
                 out.flush();
             } catch (IOException e) {
                 System.out.println("error connecting to the coordinator: " + e);
