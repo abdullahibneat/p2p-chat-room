@@ -3,6 +3,7 @@ package ChatRoom;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Objects;
 
 /**
  * Class to store details of each member.
@@ -114,5 +115,32 @@ public class Member implements Serializable {
     @Override
     public String toString() {
         return "Member{id: " + id + ", username: " + userName + ", address: " + address + ", port: " + port + ", isCoordinator: " + coordinator + "}";
+    }
+    
+    /**
+     * Override comparison criteria to check for differences between two members.
+     * Returns true if all fields are the same (case insensitive).
+     * 
+     * @param o The object to compare against.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o.getClass() == getClass()) {
+            Member memberO = (Member)o;
+            return memberO.id == id && memberO.userName.equalsIgnoreCase(userName) && memberO.address.equalsIgnoreCase(address) && port == port && isCoordinator() == coordinator;
+        }
+        else return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 43 * hash + this.id;
+        hash = 43 * hash + Objects.hashCode(this.userName);
+        hash = 43 * hash + Objects.hashCode(this.address);
+        hash = 43 * hash + this.port;
+        hash = 43 * hash + (this.coordinator ? 1 : 0);
+        return hash;
     }
 }

@@ -27,6 +27,7 @@ public final class Client {
     protected boolean online = false; // Set to true when member connected to netowrk
     
     private final ClientGUI gui;
+    private final boolean showGUI; // Whether GUI should be visible or not
     private final ServerThread server; // Server
     private final List<Member> members; // List of members
     private final List<Member> unreachableMembers = Collections.synchronizedList(new ArrayList<>());
@@ -35,6 +36,7 @@ public final class Client {
     private int newestMemberID = -1;
     private int oldestMemberID = -1; // Oldest member that is NOT a coordinator (i.e. next coordinator)
     
+    private final ArrayList<Message> allMessages = new ArrayList<>();
     
     /**
      * Creates a single client.
@@ -49,6 +51,7 @@ public final class Client {
      */
     public Client(Member me, boolean showGUI, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException {
         this.me = me;
+        this.showGUI = showGUI;
         gui = new MainGUI();
         gui.setVisibility(showGUI);
         
@@ -281,6 +284,7 @@ public final class Client {
      */
     protected void postMessage(Message message) {
         System.out.println("postMessage(" + message + ")");
+        if(!showGUI) allMessages.add(message); // Store messages into ArrayList if GUI is hidden.
         gui.addMessage(message, message.getUsername().equals(me.getUsername()));
     }
     
@@ -342,10 +346,15 @@ public final class Client {
     }
     
     /**
+     * Method to get all messages if GUI is hidden.
+     */
+    public ArrayList<Message> getAllMessages() { return allMessages; }
+    
+    /**
      * Method to terminate application.
      */
     public void quit() {
-        System.out.println("quitting method");
+        System.out.println("Preparing to terminate application");
         server.stopThread();
         if(coordinatorThread != null) coordinatorThread.stopThread();
         gui.terminate();
