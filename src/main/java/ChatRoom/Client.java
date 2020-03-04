@@ -163,10 +163,9 @@ public final class Client {
             // Check if username is unique
             if(m.isEmpty()) throw new InvalidUsernameException("Username must be unique.");
             
-            // Assign this member's ID
-            for(Member member: m) {
-                if(member.getID() > newestMemberID) newestMemberID = member.getID(); // Find the highest ID
-            }
+            // Find the highest ID
+            newestMemberID = m.get(m.size()-1).getID();
+            
             me.setID(++newestMemberID);
             
             return m;
@@ -185,32 +184,29 @@ public final class Client {
         System.out.println("incomingRequest(" + newMember + ", " + conn + ")");
         try {
             ObjectOutputStream out = new ObjectOutputStream(conn.getOutputStream());
-
-            // New user's username MUST BE UNIQUE
-            boolean usernameUnique = true;
-
-            // Send list of all members in the network
+            
             ArrayList<Member> everyone = new ArrayList<>();
-            for(Member existingMember: getMembers()) {
-                // Check is username is already in use
-                if(existingMember.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
-                    usernameUnique = false;
-                    break;
-                }
-                everyone.add(existingMember);
-            }
             everyone.add(me);
-            if(me.getUsername().toLowerCase().equals(newMember.getUsername().toLowerCase())) {
-                usernameUnique = false;
-                everyone.clear(); // Clear list let's the new member know the username is already in use.
+
+            boolean usernameUnique = !newMember.getUsername().equals(me.getUsername()); // New user's username MUST BE UNIQUE
+            
+            // If the username is unique
+            while(usernameUnique) {
+                for(Member m: getMembers()) {
+                    usernameUnique = !m.getUsername().equals(newMember.getUsername());
+                    everyone.add(m);
+                }
+                everyone.sort((m1, m2) -> { return m1.getID() - m2.getID(); }); // Sort list
+
+                // Notify everyone of this new member
+                globalAddMember(newMember);
+                break;
             }
+            if(!usernameUnique) everyone.clear(); // Empty list means username is NOT unique
 
             out.writeObject(everyone);
             out.flush();
             conn.close();
-
-            // Notify everyone of this new member
-            globalAddMember(newMember);
         } catch(IOException e) {}
     }
     
