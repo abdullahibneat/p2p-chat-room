@@ -15,6 +15,8 @@ import java.util.Iterator;
  */
 public class CoordinatorThread extends Thread {
     
+    private volatile boolean run = true;
+    
     private final Client client;
     
     public CoordinatorThread(Client client) {
@@ -29,14 +31,14 @@ public class CoordinatorThread extends Thread {
         int currentMemberID = -1;
         String currentMemberUsername = "";
         System.out.println("Coordinator thread started");
-        while(true) {
+        while(run) {
             // Two options. This member is either:
             //      - Coordinator
             //      - Next coordinator
             
             // If this is the coordinator
             if(client.me.isCoordinator()) {
-                while(true) {
+                while(run) {
                     try {
                         // Try to connect to each unreachable member to make sure they're online
                         Iterator<Member> itr = client.getUnreachableMembers().iterator();
@@ -64,7 +66,7 @@ public class CoordinatorThread extends Thread {
                 while(!client.online) {}
                 
                 // Continuously check if coordinator is online
-                while(true) {
+                while(run) {
                     try {
                         Socket conn = new Socket(currentCoordinator.getAddress(), currentCoordinator.getPort());
                         conn.close();
@@ -87,5 +89,12 @@ public class CoordinatorThread extends Thread {
                 }
             }
         }
+    }
+    
+    /**
+     * Method to terminate this thread.
+     */
+    protected void stopThread() {
+        run = false;
     }
 }

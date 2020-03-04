@@ -17,8 +17,11 @@ import java.util.concurrent.Executors;
  */
 public class ServerThread extends Thread {
     
+    private volatile boolean run = true;
+    
     private final Client client;
     private final ServerSocket server;
+    private final ExecutorService pool = Executors.newFixedThreadPool(500);;
     
     /**
      * Initialise a server thread for a given client.
@@ -41,14 +44,24 @@ public class ServerThread extends Thread {
     public void run() {            
         // Create a pool of threads, to enable multiple members to communicate
         // at the same time
-        ExecutorService pool = Executors.newFixedThreadPool(500);
-        while(true) {
+        while(run) {
             try {
                 pool.execute(new Handler(client, server.accept()));
             } catch (IOException e) {
                 // Connection went wrong.
             }
         }
+    }
+    
+    /**
+     * Method to terminate this thread.
+     */
+    protected void stopThread() {
+        run = false;
+        pool.shutdown();
+        try {
+            server.close();
+        } catch(IOException e) {}
     }
 }
 

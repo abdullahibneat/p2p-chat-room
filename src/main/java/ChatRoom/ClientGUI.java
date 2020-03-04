@@ -61,4 +61,9 @@ public interface ClientGUI {
      * @param visible Visibility setting
      */
     public void setVisibility(boolean visible);
+    
+    /**
+     * Method to dispose of the GUI.
+     */
+    public void terminate();
 }

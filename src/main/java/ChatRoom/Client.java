@@ -349,6 +349,9 @@ public final class Client {
      * Method to terminate application.
      */
     public void quit() {
-        System.exit(0);
+        System.out.println("quitting method");
+        server.stopThread();
+        coordinatorThread.stopThread();
+        gui.terminate();
     }
 }

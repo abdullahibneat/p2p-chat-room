@@ -191,4 +191,9 @@ public class MainGUI extends JFrame implements ClientGUI {
         verticalBar.addAdjustmentListener(downScroller);
     }
     
+    @Override
+    public void terminate() {
+        dispose();
+    }
+    
 }
