@@ -351,7 +351,7 @@ public final class Client {
     public void quit() {
         System.out.println("quitting method");
         server.stopThread();
-        coordinatorThread.stopThread();
+        if(coordinatorThread != null) coordinatorThread.stopThread();
         gui.terminate();
     }
 }
