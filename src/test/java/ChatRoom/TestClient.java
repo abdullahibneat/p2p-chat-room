@@ -15,7 +15,14 @@ public class TestClient extends Client {
      * An empty member that can be used to initialise a network.
      * Enables a member to become the coordinator.
      */
-    public static final Member EMPTY_MEMBER = new Member("empty", 0, "", 0);
+    public static final Member EMPTY_MEMBER;
+    static {
+        Member temp = null;
+        try {
+            temp = new Member("empty", 0, "", 0);
+        } catch(InvalidUsernameException e) {}
+        EMPTY_MEMBER = temp;
+    }
     
     /**
      * Creates a TestClient connecting member "m" with "other".

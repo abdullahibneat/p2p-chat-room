@@ -153,7 +153,10 @@ class Handler implements Runnable {
         // same member receives a request to add himself to the chat.
         if(id != client.me.getID()) {
             client.postMessage(new Message(client.me.getUsername(), "New member \"" + newMemberArr[0] + "\" joined the chat!", MessageType.SYSTEM));
-            client.getMembers().add(new Member(userName, id, address, port));
+            try {
+                client.getMembers().add(new Member(userName, id, address, port));
+            } catch(InvalidUsernameException e) {}  // Should never reach this catch, since this new member's client will NOT reach the
+                                                    // code for sending a request UNLESS the username is formatted right from the beginning.
         }
     }
     

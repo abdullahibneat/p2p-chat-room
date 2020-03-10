@@ -46,9 +46,13 @@ public class Member implements Serializable {
      * @param id Unique ID
      * @param address Host address
      * @param port Port
+     * @throws ChatRoom.InvalidUsernameException
      */
-    public Member(String userName, int id, String address, int port) {
-        this.userName = userName;
+    public Member(String userName, int id, String address, int port) throws InvalidUsernameException {
+        // Check username format
+        if(!(userName.isEmpty() || userName.contains(" "))) {
+            this.userName = userName;
+        } else throw new InvalidUsernameException("Username cannot be empty or contain spaces.");
         this.id = id;
         this.address = address;
         this.port = port;
