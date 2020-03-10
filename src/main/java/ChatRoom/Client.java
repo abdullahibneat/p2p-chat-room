@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Abdullah
  */
-public final class Client {
+public class Client {
     
     protected final Member me; // This member's details
     protected boolean online = false; // Set to true when member connected to netowrk
