@@ -38,6 +38,7 @@ public class CoordinatorThread extends Thread {
             
             // If this is the coordinator
             if(client.me.isCoordinator()) {
+                client.postMessage(new Message(client.me.getUsername(), "You are now the coordinator " + client.me.getUsername() + "!", MessageType.SYSTEM));
                 while(run) {
                     try {
                         // Try to connect to each unreachable member to make sure they're online
