@@ -3,7 +3,6 @@ package ChatRoom;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.Socket;
-import java.util.Iterator;
 
 
 /**
@@ -40,21 +39,21 @@ public class CoordinatorThread extends Thread {
             if(client.me.isCoordinator()) {
                 client.postMessage(new Message(client.me.getUsername(), "You are now the coordinator " + client.me.getUsername() + "!", MessageType.SYSTEM));
                 while(run) {
-                    try {
-                        // Try to connect to each unreachable member to make sure they're online
-                        Iterator<Member> itr = client.getUnreachableMembers().iterator();
-                        while(itr.hasNext()) {
-                            Member m = itr.next();
-                            itr.remove();
-                            currentMemberID = m.getID();
-                            currentMemberUsername = m.getUsername();
-                            System.out.println(currentMemberID + " might be unreachable, testing from coordinatorThread");
-                            Socket s = new Socket(m.getAddress(), m.getPort());
-                            s.close();
+                    synchronized(client.getUnreachableMembers()) {
+                        try {
+                            // Try to connect to each unreachable member to make sure they're online
+                            for(Member m: client.getUnreachableMembers()) {
+                                currentMemberID = m.getID();
+                                currentMemberUsername = m.getUsername();
+                                client.getUnreachableMembers().remove(m);
+                                System.out.println(currentMemberID + " might be unreachable, testing from coordinatorThread");
+                                Socket s = new Socket(m.getAddress(), m.getPort());
+                                s.close();
+                            }
+                        } catch (IOException e) {
+                            System.out.println(e + " - removing member");
+                            client.globalRemoveMember(currentMemberID, currentMemberUsername);
                         }
-                    } catch (IOException e) {
-                        System.out.println(e + " - removing member");
-                        client.globalRemoveMember(currentMemberID, currentMemberUsername);
                     }
                 }
             } else {

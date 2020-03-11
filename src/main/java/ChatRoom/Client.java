@@ -29,7 +29,7 @@ public class Client {
     private final ClientGUI gui;
     private final boolean showGUI; // Whether GUI should be visible or not
     private final ServerThread server; // Server
-    private final List<Member> members; // List of members
+    private final List<Member> members = Collections.synchronizedList(new ArrayList<>());; // List of members
     private final List<Member> unreachableMembers = Collections.synchronizedList(new ArrayList<>());
     private CoordinatorThread coordinatorThread = null;
     private boolean nextCoordinator = false; // Check if this member is the next coordinator
@@ -102,33 +102,27 @@ public class Client {
          * The user must either enter a valid address:port combination of
          * an existing member, or leave the field empty to create a new network.
          */
-        
-        // Need to make members ArrayList final, so create a temporary ArrayList
-        List<Member> tempMembers = Collections.synchronizedList(new ArrayList<>());
 
         // If input is empty, create new netwrok
         if(existingMemberAddress.isEmpty()){
             me.setID(++newestMemberID); // First member id = 0
             me.setCoordinator(); // Become coordinator
             coordinatorThread = new CoordinatorThread(this);
+            coordinatorThread.start();
         } else {
             try {
-                tempMembers = sendRequest(existingMemberAddress, existingMemberPort);
+                for(Member m: sendRequest(existingMemberAddress, existingMemberPort)) members.add(m);
                 postMessage(new Message(me.getUsername(), "Connected!", MessageType.SYSTEM));
             } catch(ClassNotFoundException e) {
                 System.out.println("Received invalid response.");
             }
         }
-        members = tempMembers;
         online = true;
         
         // Connected, enable input
         gui.getMessageInput().setEnabled(true);
         gui.getSendButton().setEnabled(true);
         
-        // Start CoordinatorThread is this member is the coordinator
-        // Late start because otherwise "members" in null, so start after "members" has been assigned.
-        if(coordinatorThread != null) coordinatorThread.start();
         updateMembersList();
     }
     
@@ -139,10 +133,6 @@ public class Client {
      */
     protected synchronized List<Member> getMembers() {
         System.out.println("getMembers()");
-        
-        // Wait for members to be initialised
-        while(members == null) {}
-        
         return members;
     }
     
