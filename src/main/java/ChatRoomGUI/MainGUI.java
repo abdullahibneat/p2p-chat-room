@@ -41,7 +41,7 @@ public class MainGUI extends JFrame implements ClientGUI {
     
     private final String PLACEHOLDER_TEXT = "Type your message here...";
     
-    public MainGUI() {
+    public MainGUI(String userName) {
         
         // Placeholder text handling
         messageInput.setForeground(Color.gray);
@@ -64,14 +64,14 @@ public class MainGUI extends JFrame implements ClientGUI {
             }
         });
         
-        init();
+        init(userName);
     }
     
     /**
      * Initialise the user interface.
      */
-    private void init() {
-        setTitle("Chat Room");
+    private void init(String userName) {
+        setTitle("Chat Room" + " - " + userName);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(800, 500));
         

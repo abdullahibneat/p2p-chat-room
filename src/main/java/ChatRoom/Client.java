@@ -52,7 +52,7 @@ public class Client {
     public Client(Member me, boolean showGUI, String existingMemberAddress, int existingMemberPort) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException {
         this.me = me;
         this.showGUI = showGUI;
-        gui = new MainGUI();
+        gui = new MainGUI(me.getUsername());
         gui.setVisibility(showGUI);
         
         // Disable input until connected to server
