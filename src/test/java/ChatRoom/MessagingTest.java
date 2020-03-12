@@ -92,6 +92,8 @@ public class MessagingTest {
         mmcaac_c6.sendMessage("Hello from m6");
         mmcaac_c7.sendMessage("Hello from m7");
         
+        Thread.sleep(5000);
+        
         for(Message m: mmcaac_c1.getAllMessages()) if(m.getMessageType() == MessageType.MESSAGE) mmcaac_c1_messages.add(m);
         for(Message m: mmcaac_c2.getAllMessages()) if(m.getMessageType() == MessageType.MESSAGE) mmcaac_c2_messages.add(m);
         for(Message m: mmcaac_c3.getAllMessages()) if(m.getMessageType() == MessageType.MESSAGE) mmcaac_c3_messages.add(m);

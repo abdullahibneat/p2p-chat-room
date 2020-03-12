@@ -1,6 +1,8 @@
 package ChatRoom;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
@@ -69,6 +71,8 @@ public class GroupFormationTest {
         
         Member[] mmckc_allMembers = {mmckc_c1.me, mmckc_c2.me, mmckc_c3.me, mmckc_c4.me, mmckc_c5.me, mmckc_c6.me, mmckc_c7.me};
         
+        Thread.sleep(5000);
+        
         // Check if all members know each other.
         assertArrayEquals(Arrays.stream(mmckc_allMembers).filter(m -> !m.equals(mmckc_c1.me)).toArray(), mmckc_c1.getMembers().toArray());
         assertArrayEquals(Arrays.stream(mmckc_allMembers).filter(m -> !m.equals(mmckc_c2.me)).toArray(), mmckc_c2.getMembers().toArray());
@@ -120,6 +124,8 @@ public class GroupFormationTest {
         TestClient mmckaem_c7 = TestClient.buildTestClient("m7", mmckaem_c4.me);
         
         Member[] mmckaem_allMembers = {mmckaem_c1.me, mmckaem_c2.me, mmckaem_c3.me, mmckaem_c4.me, mmckaem_c5.me, mmckaem_c6.me, mmckaem_c7.me};
+        
+        Thread.sleep(5000);
         
         // Check if all members know each other.
         assertArrayEquals(Arrays.stream(mmckaem_allMembers).filter(m -> !m.equals(mmckaem_c1.me)).toArray(), mmckaem_c1.getMembers().toArray());
@@ -190,14 +196,12 @@ public class GroupFormationTest {
         oml_c7.sendMessage("Hi guys, is this the cool network everyone's talking about?");
         
         // Check whether everyone removed m3 from their list
-        assertTrue(!(
-                oml_c1.getMembers().contains(m3) &&
-                oml_c2.getMembers().contains(m3) &&
-                oml_c3.getMembers().contains(m3) &&
-                oml_c4.getMembers().contains(m3) &&
-                oml_c5.getMembers().contains(m3) &&
-                oml_c6.getMembers().contains(m3) &&
-                oml_c7.getMembers().contains(m3)));
+        assertTrue(oml_c1.getMembers().contains(m3));
+        assertTrue(oml_c2.getMembers().contains(m3));
+        assertTrue(oml_c4.getMembers().contains(m3));
+        assertTrue(oml_c5.getMembers().contains(m3));
+        assertTrue(oml_c6.getMembers().contains(m3));
+        assertTrue(oml_c7.getMembers().contains(m3));
         
         oml_c7.quit();
         oml_c6.quit();
