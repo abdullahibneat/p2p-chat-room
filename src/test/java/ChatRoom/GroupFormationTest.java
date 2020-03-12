@@ -29,6 +29,8 @@ public class GroupFormationTest {
         
         assertEquals(nc_c1.online, true); // 12 is online only if network is successfully created.
         assertEquals(nc_c1.me.isCoordinator(), true);
+        
+        nc_c1.quit();
     }
     
     /**
@@ -45,6 +47,9 @@ public class GroupFormationTest {
         assertEquals(smc_c1.getMembers().size(), smc_c2.getMembers().size()); // m1 and m2 sjould have the same number of members (1)
         assertEquals(smc_c1.getMembers().get(0), smc_c2.me); // the only member for c1 should be m2        
         assertEquals(smc_c2.getMembers().get(0), smc_c1.me); // the only member for c2 should be m1
+        
+        smc_c2.quit();
+        smc_c1.quit();                
     }
     
     /**
@@ -72,6 +77,14 @@ public class GroupFormationTest {
         assertArrayEquals(Arrays.stream(mmckc_allMembers).filter(m -> !m.equals(mmckc_c5.me)).toArray(), mmckc_c5.getMembers().toArray());
         assertArrayEquals(Arrays.stream(mmckc_allMembers).filter(m -> !m.equals(mmckc_c6.me)).toArray(), mmckc_c6.getMembers().toArray());
         assertArrayEquals(Arrays.stream(mmckc_allMembers).filter(m -> !m.equals(mmckc_c7.me)).toArray(), mmckc_c7.getMembers().toArray());
+        
+        mmckc_c7.quit();
+        mmckc_c6.quit();
+        mmckc_c5.quit();
+        mmckc_c4.quit();
+        mmckc_c3.quit();
+        mmckc_c2.quit();
+        mmckc_c1.quit();
     }
     
     /**
@@ -116,6 +129,14 @@ public class GroupFormationTest {
         assertArrayEquals(Arrays.stream(mmckaem_allMembers).filter(m -> !m.equals(mmckaem_c5.me)).toArray(), mmckaem_c5.getMembers().toArray());
         assertArrayEquals(Arrays.stream(mmckaem_allMembers).filter(m -> !m.equals(mmckaem_c6.me)).toArray(), mmckaem_c6.getMembers().toArray());
         assertArrayEquals(Arrays.stream(mmckaem_allMembers).filter(m -> !m.equals(mmckaem_c7.me)).toArray(), mmckaem_c7.getMembers().toArray());
+        
+        mmckaem_c7.quit();
+        mmckaem_c6.quit();
+        mmckaem_c5.quit();
+        mmckaem_c4.quit();
+        mmckaem_c3.quit();
+        mmckaem_c2.quit();
+        mmckaem_c1.quit();
     }
     
     /**
@@ -177,5 +198,12 @@ public class GroupFormationTest {
                 oml_c5.getMembers().contains(m3) &&
                 oml_c6.getMembers().contains(m3) &&
                 oml_c7.getMembers().contains(m3)));
+        
+        oml_c7.quit();
+        oml_c6.quit();
+        oml_c5.quit();
+        oml_c4.quit();
+        oml_c2.quit();
+        oml_c1.quit();
     }
 }

@@ -40,6 +40,9 @@ public class MessagingTest {
         for(Message m: tmc_c2.getAllMessages()) if(m.getMessageType() == MessageType.MESSAGE) c2_messages.add(m);
         
         assertArrayEquals(c1_messages.toArray(), c2_messages.toArray());
+        
+        tmc_c2.quit();
+        tmc_c1.quit();
     }
     
     /**
@@ -105,6 +108,14 @@ public class MessagingTest {
         assertArrayEquals(mmcaac_c5_messages.toArray(), mmcaac_c2_messages.toArray());
         assertArrayEquals(mmcaac_c3_messages.toArray(), mmcaac_c2_messages.toArray());
         assertArrayEquals(mmcaac_c1_messages.toArray(), mmcaac_c4_messages.toArray());
+        
+        mmcaac_c7.quit();
+        mmcaac_c6.quit();
+        mmcaac_c5.quit();
+        mmcaac_c4.quit();
+        mmcaac_c3.quit();
+        mmcaac_c2.quit();
+        mmcaac_c1.quit();
     }
     
     /**
@@ -235,5 +246,13 @@ public class MessagingTest {
         assertArrayEquals(mmcrj_c7_messages.toArray(), mmcrj_c4_messages.subList(8, mmcrj_c4_messages.size()).toArray());
         assertArrayEquals(mmcrj_c7_messages.toArray(), mmcrj_c5_messages.subList(5, mmcrj_c5_messages.size()).toArray());
         assertArrayEquals(mmcrj_c7_messages.toArray(), mmcrj_c6_messages.subList(5, mmcrj_c6_messages.size()).toArray());
+        
+        mmcrj_c7.quit();
+        mmcrj_c6.quit();
+        mmcrj_c5.quit();
+        mmcrj_c4.quit();
+        mmcrj_c3.quit();
+        mmcrj_c2.quit();
+        mmcrj_c1.quit();
     }
 }

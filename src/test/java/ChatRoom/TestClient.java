@@ -33,16 +33,19 @@ public class TestClient extends Client {
      */
     public TestClient(Member m, Member other) throws PortNotAvailbleException, UnknownMemberException, InvalidUsernameException {
         super(m, false, other.getAddress(), other.getPort());
+        try{ Thread.sleep(1000); } catch(InterruptedException e) {}
     }
 
     @Override
     protected void sendMessage(String message) {
-        try {
-            super.sendMessage(message);
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            System.out.println("TestClient interrupted");
-        }
+        super.sendMessage(message);
+        try{ Thread.sleep(1000); } catch(InterruptedException e) {}
+    }
+    
+    @Override
+    public void quit() {
+        super.quit();
+        try { Thread.sleep(1000); } catch(InterruptedException e) {}
     }
     
     /**
