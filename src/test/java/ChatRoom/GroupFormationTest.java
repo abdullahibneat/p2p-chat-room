@@ -1,8 +1,6 @@
 package ChatRoom;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
@@ -30,7 +28,6 @@ public class GroupFormationTest {
         TestClient nc_c1 = TestClient.buildTestClient("m1", TestClient.EMPTY_MEMBER);
         
         assertEquals(nc_c1.online, true); // 12 is online only if network is successfully created.
-        assertEquals(nc_c1.me.isCoordinator(), true);
         
         nc_c1.quit();
     }
