@@ -14,7 +14,7 @@ public class ExceptionsTest {
      */
     @Test(expected = PortNotAvailbleException.class)
     public void testPortNotAvailable() throws Exception {
-        Member pna_m1 = new Member("m1", 58888); // 58888 is a port used by Windows OS.
+        Member pna_m1 = new Member("m1", 135); // 135 is a port used by Windows OS.
         Client pna_c = new Client(pna_m1, false, "", 0);
     }
     
